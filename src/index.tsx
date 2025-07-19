@@ -4,7 +4,7 @@ import Header from "./components/Header";
 import AboutMe from "./components/AboutMe";
 import Experience from "./components/Experience";
 import Projects from "./components/Projects";
-import Education from "./components/Education";
+import Education from "./components/Education"; 
 import { Footer } from "./components/Footer"; 
 
 const Index = () => {
