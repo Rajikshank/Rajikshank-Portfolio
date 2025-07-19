@@ -1,0 +1,37 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&family=Press+Start+2P&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+body{
+  @apply  bg-[#242424];
+
+    background-size: 40px 40px;
+  background-image: radial-gradient(circle, #474747 1px, rgba(0, 0, 0, 0) 1px);
+
+}
+
+
+
+@theme {
+  --font-PressStart: "Press Start 2P", system-ui; 
+  --font-Intel:"Intel One Mono","monospace"
+}
+
+
+.footerbar{
+
+  animation: grow 100ms;
+
+}
+
+@keyframes grow {
+
+  from{
+    width: 0%;
+  }
+
+  to{
+    width: 100%;
+  }
+  
+}
