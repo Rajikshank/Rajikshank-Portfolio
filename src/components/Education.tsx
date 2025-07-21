@@ -22,8 +22,8 @@ function EducationElement({
 }) {
   return (
     <div>
-      <h1 className="text-gray-200">{Title}</h1>
-      <h3 className="text-md text-gray-400 mt-2">
+      <h1 className="text-gray-200 ">{Title}</h1>
+      <h3 className="lg:text-base text-sm text-gray-400 mt-2 ">
         {institute} - ({Period})
       </h3>
     </div>

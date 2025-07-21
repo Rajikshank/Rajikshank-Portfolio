@@ -9,7 +9,7 @@ import { Footer } from "./components/Footer";
 
 const Index = () => {
   return (
-    <div className="max-w-4xl mx-auto my-6">
+    <div className="md:max-w-4xl px-4 md:px-0 mx-auto my-6   ">
       <Header />
       {/* <Navbar /> */}
       <AboutMe />
