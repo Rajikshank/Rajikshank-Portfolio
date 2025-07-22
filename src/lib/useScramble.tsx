@@ -20,3 +20,18 @@ export const TextScramble = ({ speed, text, textsize,font }: textScramble) => {
     />
   );
 };
+
+
+export const TextScrambleParagraph = ({ speed, text, textsize,font }: textScramble) => {
+  const { ref } = useScramble({
+    text: text,
+    speed: speed,
+  });
+
+  return (
+    <h1
+      ref={ref}
+      className={`${textsize}     ${font}  `}
+    />
+  );
+};
