@@ -1,18 +1,12 @@
+import { Copyright } from "lucide-react";
+
 export const Footer = () => {
   return (
-    <footer className="font-Intel  ">
-      <div className="flex justify-evenly py-2  ">
-        <a className="text-orange-500" target="__blank" href="https://www.linkedin.com/in/krishnakumar-rajikshan-4853861a5/">
-          linkedIn
-        </a>
-        <a className="text-orange-500" target="__blank"  href="https://github.com/Rajikshank">
-          Github
-        </a>
-        <a className="text-orange-500" target="__blank"  href="https://x.com/x399Shan">
-          X
-        </a>
+    <footer className="font-Intel">
+      <div className="flex items-center justify-center py-4 px-4 text-sm sm:text-base text-white">
+        <Copyright className="w-4 h-4 mr-2" />
+        <span>Developed by Rajikshan</span>
       </div>
-      {/* <div className="bg-orange-500 w-full h-[0.5px] " /> */}
     </footer>
   );
 };

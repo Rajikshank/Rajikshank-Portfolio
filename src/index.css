@@ -1,37 +1,30 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&family=Press+Start+2P&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&family=Press+Start+2P&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
-body{
-  @apply  bg-[#242424];
+body {
+  /* @apply  bg-[#242424]; */
+  @apply bg-black;
 
-    background-size: 40px 40px;
+  background-size: 40px 40px;
   background-image: radial-gradient(circle, #474747 1px, rgba(0, 0, 0, 0) 1px);
-
+  /* background-image: radial-gradient(circle, #474747 1px, rgba(88, 9, 9, 0) 1px); */
 }
-
-
 
 @theme {
-  --font-PressStart: "Press Start 2P", system-ui; 
-  --font-Intel:"Intel One Mono","monospace"
+  --font-PressStart: "Press Start 2P", system-ui;
+  --font-Intel: "Intel One Mono", "monospace";
 }
 
-
-.footerbar{
-
+.footerbar {
   animation: grow 100ms;
-
 }
 
 @keyframes grow {
-
-  from{
+  from {
     width: 0%;
   }
 
-  to{
+  to {
     width: 100%;
   }
-  
 }

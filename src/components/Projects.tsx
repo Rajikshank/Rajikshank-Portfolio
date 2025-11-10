@@ -66,7 +66,7 @@ function ProjectElement({
           <h1 className="text-gray-200">{Title}</h1>
 
           <h3 className="text-md text-gray-400 mt-2">{Technology}</h3>
-          <p className="text-gray-200 ">{Desc}</p>
+          <p className="text-gray-200  text-justify max-w-[700px] ">{Desc}</p>
         </div>
         <div className="flex gap-2 items-center  flex-col">
           <div className="w-[120px] relative hidden md:block">

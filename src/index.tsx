@@ -6,17 +6,19 @@ import Experience from "./components/Experience";
 import Projects from "./components/Projects";
 import Education from "./components/Education"; 
 import { Footer } from "./components/Footer"; 
+ 
 
 const Index = () => {
   return (
     <div className="md:max-w-4xl px-4 md:px-0 mx-auto my-6   ">
       <Header />
       {/* <Navbar /> */}
-      <AboutMe />
+      {/* <AboutMe /> */}
       <Experience />
       <Projects />
       <Education />
       <Footer />
+ 
     </div>
   );
 };
