@@ -7,7 +7,7 @@ const Header = () => {
     <div className=" py-1 space-y-2 border--2 pl-2 border-orange-400 p-1  ">
       
     <div className="flex gap-2">
-      <img src="/profile.png" className="md:w-48"/>
+      <img src="/profile.png" className="md:w-48 rounded-xl "/>
          <img src="/profile.png" className="w-48 md:block hidden "/>
          <img src="/profile.png" className="w-48 hidden md:block"/>
          <img src="/profile.png" className="w-48 hidden md:block"/>
