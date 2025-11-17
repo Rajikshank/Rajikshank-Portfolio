@@ -1,31 +1,46 @@
+import { Mail, MapPin } from "lucide-react";
 import { TextScramble } from "../lib/useScramble";
 import AboutMe from "./AboutMe";
 import Social from "./Social";
 
+
 const Header = () => {
   return (
-    <div className=" py-1 space-y-2 border--2 pl-2 border-orange-400 p-1  ">
+    <div className=" py-1 space-y-2  border-orange-400 p-1  ">
+      <div className="mt-8 flex">
       
-    <div className="flex gap-2">
-      <img src="/profile.png" className="md:w-48 rounded-xl "/>
-         <img src="/profile.png" className="w-48 md:block hidden "/>
-         <img src="/profile.png" className="w-48 hidden md:block"/>
-         <img src="/profile.png" className="w-48 hidden md:block"/>
-    </div>
-      <TextScramble
-        speed={0.45}
-        text="Rajikshan K"
-        textsize="md:text-4xl text-2xl"
-        font="font-PressStart"
-      />
+        <TextScramble
+          speed={0.45}
+          text="Rajikshan K"
+          textsize="md:text-4xl text-2xl"
+          font="font-PressStart"
+        />
+      </div>
+
+      <div className="flex space-x-8 ">
+        <div className="flex items-center gap-1">
+          <MapPin className="text-orange-400 w-4" />
+          <h2 className="text-white font-Intel text-sm ">Sri Lanka</h2>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Mail className="text-orange-400 w-4" />
+          <h2 className="text-white font-Intel text-sm ">
+            Krajikshan637@gmail.com
+          </h2>
+        </div>
+      </div>
 
       {/* <h1 className='text-4xl font-semibold font-PressStart text-orange-500'>Rajikshan K</h1> */}
 
-      <AboutMe />
+      <div className="mt-2">
+        <AboutMe />
+      </div>
+      <Social />
 
-      <Social/>
+      {/* <div className="my-4 rounded bg-gradient-to-r h-4 bg-orange-400 to-black">
 
-      
+      </div> */}
     </div>
   );
 };

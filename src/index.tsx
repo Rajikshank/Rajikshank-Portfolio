@@ -1,12 +1,10 @@
- 
 import Header from "./components/Header";
 // import Navbar from "./components/Navbar";
 //import AboutMe from "./components/AboutMe";
 import Experience from "./components/Experience";
 import Projects from "./components/Projects";
-import Education from "./components/Education"; 
-import { Footer } from "./components/Footer"; 
- 
+import Education from "./components/Education";
+import { Footer } from "./components/Footer";
 
 const Index = () => {
   return (
@@ -15,10 +13,10 @@ const Index = () => {
       {/* <Navbar /> */}
       {/* <AboutMe /> */}
       <Experience />
-      <Projects />
+
       <Education />
+      <Projects />
       <Footer />
- 
     </div>
   );
 };
