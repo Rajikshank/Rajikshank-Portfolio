@@ -6,6 +6,7 @@ import Social from "./Social";
 
 const Header = () => {
   return (
+    <>
     <div className=" py-1 space-y-2  border-orange-400 p-1  ">
       <div className="mt-8 flex">
       
@@ -38,10 +39,12 @@ const Header = () => {
       </div>
       <Social />
 
-      {/* <div className="my-4 rounded bg-gradient-to-r h-4 bg-orange-400 to-black">
-
-      </div> */}
+     
     </div>
+     <div className="my-4 rounded bg-gradient-to-r h-1 bg-orange-500 mask-r-to-transparent">
+
+      </div>
+    </>
   );
 };
 
