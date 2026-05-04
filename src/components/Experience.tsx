@@ -1,53 +1,40 @@
-import { TextScramble } from "../lib/useScramble";
-
-const experiences = [
-  {
-    position: "Intern Full Stack Developer",
-    organization: "SPM Technologies(2025)",
-    desc: "Contributed to the Saas Apps developed with Nextjs ,nestjs",
-  },
-];
-
-function ExperienceElement({
-  position,
-  organization,
-  desc,
-}: {
-  position: string;
-  organization: string;
-  desc: string;
-}) {
-  return (
-    <div>
-      <h1 className="text-gray-200">{position}</h1>
-      <h3 className="text-md text-gray-400">{organization}</h3>
-      <p className="text-gray-200">{desc}</p>
-    </div>
-  );
-}
+import { BriefcaseBusiness } from "lucide-react";
+import { experiences } from "../data/portfolio";
+import { SectionHeading } from "./SectionHeading";
 
 const Experience = () => {
   return (
-    <div className="font-Intel my-20">
-      <TextScramble
-        speed={0.4}
-        text="Experience"
-        textsize="text-lg"
-        font="font-Intel"
+    <section id="experience" className="motion-section scroll-mt-24">
+      <SectionHeading
+        eyebrow="Experience"
+        title="Real product work, not resume filler."
+        summary="A concise view of the professional work behind the stack, with the emphasis on practical delivery."
       />
-      {/* <h1 className='text-orange-500  font-semibold text-lg'>Experience</h1> */}
 
-      <div className="px-2 mt-4   lg:text-base text-sm">
-        {experiences.map((item, idx) => (
-          <ExperienceElement
-            key={idx}
-            desc={item.desc}
-            organization={item.organization}
-            position={item.position}
-          />
+      <div className="relative border-l border-white/10 pl-6">
+        {experiences.map((item) => (
+          <article key={`${item.organization}-${item.period}`} className="motion-item relative pb-2">
+            <div className="absolute -left-[2.45rem] top-0 flex h-8 w-8 items-center justify-center rounded-full border border-amber-300/40 bg-black text-amber-200">
+              <BriefcaseBusiness className="h-4 w-4" />
+            </div>
+            <div className="retro-panel rounded-lg p-6">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-100">{item.position}</h3>
+                  <p className="mt-1 font-mono text-sm text-stone-400">{item.organization}</p>
+                </div>
+                <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-mono text-xs text-amber-200">
+                  {item.period}
+                </span>
+              </div>
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-stone-300 md:text-base">
+                {item.description}
+              </p>
+            </div>
+          </article>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -1,54 +1,34 @@
-
-import { TextScramble } from "../lib/useScramble";
-
-const education = [
-  {
-    Title: "Bsc(Hons) Software engineering",
-    Period: "2021-2025",
-    institute: "Sri Lanka Technological Campus",
-  },
-];
-
-function EducationElement({
-  Title,
-  Period,
-  institute,
- 
-}: {
-  Title: string;
-  Period: string;
-  institute: string;
- 
-}) {
-  return (
-    <div>
-      <h1 className="text-gray-200 ">{Title}</h1>
-      <h3 className="lg:text-base text-sm text-gray-400 mt-2 ">
-        {institute} - ({Period})
-      </h3>
-    </div>
-  );
-}
+import { GraduationCap } from "lucide-react";
+import { education } from "../data/portfolio";
+import { SectionHeading } from "./SectionHeading";
 
 const Education = () => {
   return (
-    <div className="font-Intel my-20">
-              <TextScramble speed={0.40} text='Education' textsize='text-lg' font="font-Intel"/>
-      {/* <h1 className="text-orange-500  font-semibold text-lg">Education</h1> */}
+    <section className="motion-section scroll-mt-24">
+      <SectionHeading
+        eyebrow="Education"
+        title="Software engineering foundation."
+        summary="Formal software engineering study, paired with product building and modern full-stack practice."
+      />
 
-      <div className="px-2 mt-4 flex flex-col gap-14">
-        {education.map((item, idx) => (
-          <EducationElement
-            key={idx}
-            Period={item.Period}
-            Title={item.Title}
-            institute={item.institute}
-          />
+      <div className="grid gap-4 md:grid-cols-2">
+        {education.map((item) => (
+          <article
+            key={item.title}
+            className="motion-item rounded-lg border border-white/10 bg-white/[0.035] p-6"
+          >
+            <div className="mb-8 inline-flex h-11 w-11 items-center justify-center rounded-md border border-amber-300/25 bg-amber-300/10 text-amber-200">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <h3 className="text-xl font-semibold text-stone-100">{item.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-stone-400">{item.institute}</p>
+            <p className="mt-5 font-mono text-xs uppercase tracking-[0.18em] text-orange-200">
+              {item.period}
+            </p>
+          </article>
         ))}
       </div>
-
-      <div className="px-2 mt-4 flex flex-col gap-14"></div>
-    </div>
+    </section>
   );
 };
 

@@ -1,39 +1,31 @@
-import { ArrowDownToLine, Github, Linkedin, X } from "lucide-react";
+import { BriefcaseBusiness, GitBranch, X } from "lucide-react";
 import { motion } from "motion/react";
+import { socials } from "../data/portfolio";
+
+const links = [
+  { label: "LinkedIn", href: socials.linkedin, Icon: BriefcaseBusiness },
+  { label: "GitHub", href: socials.github, Icon: GitBranch },
+  { label: "X", href: socials.x, Icon: X },
+];
+
 const Social = () => {
- 
-
   return (
-    <motion.div className=" mt-4 flex space-x-14 md:space-x-24">
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <a
-          href="https://www.linkedin.com/in/krishnakumar-rajikshan-4853861a5/"
-          target="__blank"
+    <motion.div className="flex items-center gap-2">
+      {links.map(({ label, href, Icon }, index) => (
+        <motion.a
+          key={label}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.46 + index * 0.06, duration: 0.35 }}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={label}
+          className="spark-button inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-stone-300 transition hover:border-orange-300/60 hover:bg-orange-300/10 hover:text-orange-100"
         >
-          <Linkedin className="text-orange-500 bg-gray-700 ring-1 hover:ring-1 hover:cursor-pointer hover:scale-110 hover:ring-white rounded p-0.5  w-6 h-6" />
-        </a>
-      </motion.div>
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <a href="https://github.com/Rajikshank" target="__blank">
-          <Github className="text-orange-500 bg-gray-700 ring-1 hover:ring-1 hover:cursor-pointer hover:scale-110 hover:ring-white rounded p-0.5  w-6 h-6" />
-        </a>
-      </motion.div>
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        <a href="https://x.com/x399Shan" target="__blank">
-          <X className="text-orange-500 bg-gray-700 ring-1 hover:ring-1 hover:cursor-pointer hover:scale-110 hover:ring-white rounded p-0.5  w-6 h-6" />
-        </a>
-      </motion.div>
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-        {" "}
-
-        <a href="https://drive.google.com/file/d/1zp91nbp8eCVzUQIpayRl1ModXrVnNlYl/view?usp=drive_link" target="__blank">
-        <ArrowDownToLine
-        
-          className="text-orange-500 bg-gray-700 ring-1 hover:ring-1 hover:cursor-pointer hover:scale-110 hover:ring-white rounded p-0.5  w-6 h-6"
-       
-       />
-       </a>
-      </motion.div>
+          <Icon className="h-4 w-4" />
+        </motion.a>
+      ))}
     </motion.div>
   );
 };
