@@ -1,25 +1,15 @@
 type SectionHeadingProps = {
-  eyebrow: string;
+  index: string;
   title: string;
-  summary?: string;
+  note?: string;
 };
 
-export const SectionHeading = ({ eyebrow, title, summary }: SectionHeadingProps) => {
+export const SectionHeading = ({ index, title, note }: SectionHeadingProps) => {
   return (
-    <div className="gsap-reveal mb-8 flex flex-col gap-3 md:mb-10">
-      <p className="font-mono text-xs uppercase tracking-[0.22em] text-amber-300">
-        {eyebrow}
-      </p>
-      <div className="grid gap-4 md:grid-cols-[0.85fr_1fr] md:items-end">
-        <h2 className="font-display text-3xl font-semibold text-stone-50 md:text-5xl">
-          {title}
-        </h2>
-        {summary ? (
-          <p className="max-w-2xl text-sm leading-7 text-stone-400 md:text-base">
-            {summary}
-          </p>
-        ) : null}
-      </div>
+    <div className="section-head reveal-item">
+      <span className="section-index">{index}</span>
+      <h2>{title}</h2>
+      {note ? <p className="section-note">{note}</p> : null}
     </div>
   );
 };
