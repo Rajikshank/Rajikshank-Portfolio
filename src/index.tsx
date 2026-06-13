@@ -96,23 +96,24 @@ const Index = () => {
 
       gsap.fromTo(
         ".hero-name-line",
-        { y: 30, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 1,
-          ease: "expo.out",
-          stagger: 0.08,
-          delay: 0.15,
+          duration: 0.7,
+          ease: "power3.out",
+          stagger: 0.09,
+          delay: 0.2,
         }
       );
 
       gsap.fromTo(
         ".hero-name em",
-        { backgroundSize: "0% 100%" },
+        { letterSpacing: "-0.08em", opacity: 0.3 },
         {
-          backgroundSize: "100% 100%",
-          duration: 1.2,
+          letterSpacing: "-0.03em",
+          opacity: 1,
+          duration: 0.9,
           ease: "expo.out",
           delay: 0.6,
         }
@@ -152,6 +153,7 @@ const Index = () => {
           duration: 1.4,
           ease: "power3.inOut",
           stagger: 0.12,
+          immediateRender: false,
           scrollTrigger: {
             trigger: ".activity-panel",
             start: "top 88%",
@@ -169,6 +171,7 @@ const Index = () => {
           ease: "power2.out",
           stagger: 0.1,
           delay: 0.5,
+          immediateRender: false,
           scrollTrigger: {
             trigger: ".activity-panel",
             start: "top 88%",
@@ -187,6 +190,7 @@ const Index = () => {
           ease: "back.out(2)",
           stagger: 0.03,
           delay: 0.7,
+          immediateRender: false,
           scrollTrigger: {
             trigger: ".activity-panel",
             start: "top 88%",

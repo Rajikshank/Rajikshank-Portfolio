@@ -498,15 +498,14 @@ main {
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(1.95rem, 6vw, 2.7rem);
-  line-height: 1.05;
+  font-size: clamp(1.75rem, 5.5vw, 2.35rem);
+  line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--ink);
 }
 
 .hero-name-line {
   display: block;
-  overflow: hidden;
 }
 
 .hero-name-line + .hero-name-line {
@@ -520,18 +519,21 @@ main {
 
 .hero-name em {
   font-style: italic;
-  color: transparent;
+  color: var(--orange);
   font-weight: 500;
   position: relative;
   display: inline-block;
-  background-image: linear-gradient(120deg, var(--orange) 0%, var(--orange) 50%, var(--orange-warm) 100%);
-  background-size: 0% 100%;
+  background-image: linear-gradient(120deg, var(--orange) 0%, var(--orange-warm) 100%);
+  background-size: 100% 100%;
   background-repeat: no-repeat;
-  background-position: 0 0;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  transition: background-size 0.4s ease;
+}
+
+.hero-name em:hover {
+  background-size: 200% 100%;
+  transition: background-position 0.6s ease;
 }
 
 .hero-name em::before {
@@ -541,25 +543,25 @@ main {
   color: var(--orange);
   opacity: 0;
   pointer-events: none;
-  filter: blur(8px);
+  filter: blur(10px);
   transition: opacity 0.3s ease;
   -webkit-text-fill-color: var(--orange);
 }
 
 .hero-name:hover em::before {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .hero-name-dot {
   display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.5rem;
+  height: 0.5rem;
   background-color: var(--orange);
-  border-radius: 1.5px;
+  border-radius: 2px;
   margin-left: 0.4rem;
-  vertical-align: 0.18em;
+  vertical-align: 0.2em;
   animation: hero-cursor 1.1s steps(2) infinite;
-  box-shadow: 0 0 8px var(--orange-soft);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--orange) 50%, transparent);
 }
 
 @keyframes hero-cursor {
@@ -893,32 +895,18 @@ main {
 
 .activity-chart-area {
   opacity: 0;
-  animation: chart-area-fade 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .activity-chart-line {
-  animation: chart-line-draw 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  stroke-dashoffset: 100;
   filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 30%, transparent));
-}
-
-@keyframes chart-area-fade {
-  to { opacity: 1; }
-}
-
-@keyframes chart-line-draw {
-  to { stroke-dashoffset: 0; }
 }
 
 .activity-chart-dot {
   opacity: 0;
-  animation: chart-dot-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center;
   transition: r 0.2s ease, opacity 0.2s ease;
-}
-
-@keyframes chart-dot-pop {
-  0% { opacity: 0; transform: scale(0.2); transform-box: fill-box; transform-origin: center; }
-  60% { opacity: 1; transform: scale(1.4); }
-  100% { opacity: 1; transform: scale(1); }
 }
 
 .activity-chart-now {
