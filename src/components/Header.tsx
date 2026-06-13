@@ -1,31 +1,55 @@
-import { ArrowUpRight, Download, Mail, Sparkles } from "lucide-react";
+import { ArrowUpRight, Download, Mail } from "lucide-react";
+import { useEffect, useState } from "react";
 import { highlights, profile, socials } from "../data/portfolio";
 import { TextScramble } from "../lib/TextScramble";
 
 export const Header = () => {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const timeStr = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const dateStr = now.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+
   return (
     <header id="home" className="hero">
-      <p className="hero-status reveal-item">
-        <Sparkles className="h-2.5 w-2.5" />
-        <span>{profile.status}</span>
-      </p>
-
-      <h1 className="reveal-item">
-        <span className="hero-line">Hi, I'm</span>
-        <span className="hero-name">
-          <em>
-            <TextScramble text="Rajikshan" />
-          </em>
-          <span className="hero-name-dot" aria-hidden="true" />
+      <div className="hero-meta reveal-item">
+        <span className="hero-time">
+          <span className="hero-time-dot" aria-hidden="true" />
+          <span>{dateStr} · {timeStr}</span>
         </span>
-        <span className="hero-line">a junior full-stack developer</span>
-        <span className="hero-line">looking for the next thing to build.</span>
+        <span className="hero-loc">batticaloa · lk</span>
+      </div>
+
+      <h1 className="hero-title">
+        <span className="hero-name-line">Hi, I'm</span>
+        <span className="hero-name-line">
+          <span className="hero-name">
+            <em>
+              <TextScramble text="Rajikshan" />
+            </em>
+            <span className="hero-name-dot" aria-hidden="true" />
+          </span>
+        </span>
+        <span className="hero-name-line">a junior full-stack</span>
+        <span className="hero-name-line">developer building for the web.</span>
       </h1>
 
       <p className="hero-role reveal-item">
         <span>{profile.role}</span>
-        <span>{profile.location}</span>
         <span>graduated 2025</span>
+        <span>looking for a full-time role</span>
       </p>
 
       <p className="hero-lead reveal-item">{profile.intro}</p>

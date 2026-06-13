@@ -2,6 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { activityClusters, type ActivityCluster } from "../data/portfolio";
 import { SectionHeading } from "./SectionHeading";
 
+const COLORS = {
+  core: "#e25822",
+  ai: "#f59e6b",
+  ship: "#c97a44",
+};
+
 const useCountUp = (target: number, durationMs: number) => {
   const [value, setValue] = useState(0);
   const startRef = useRef(0);
@@ -34,94 +40,255 @@ const useCountUp = (target: number, durationMs: number) => {
   return value;
 };
 
-const buildSparkline = (cells: number[], width: number, height: number) => {
-  const max = 3;
-  const stepX = width / (cells.length - 1);
-  const points = cells.map((v, i) => {
-    const x = i * stepX;
-    const y = height - (v / max) * (height - 4) - 2;
+type Point = { x: number; y: number };
+type PathShape = { line: string; area: string; points: Point[] };
+
+const buildSmoothPath = (
+  values: number[],
+  width: number,
+  height: number,
+  padding = 6
+): PathShape => {
+  if (values.length < 2) {
+    return { line: "", area: "", points: [] };
+  }
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const stepX = (width - padding * 2) / (values.length - 1);
+  const points: Point[] = values.map((v, i) => {
+    const x = padding + i * stepX;
+    const y = height - padding - ((v - min) / range) * (height - padding * 2);
     return { x, y };
   });
-  const line = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-    .join(" ");
-  const area = `${line} L${width} ${height} L0 ${height} Z`;
+
+  // Smooth Bezier path (Catmull-Rom-like)
+  let line = `M ${points[0]!.x.toFixed(2)} ${points[0]!.y.toFixed(2)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)]!;
+    const p1 = points[i]!;
+    const p2 = points[i + 1]!;
+    const p3 = points[Math.min(points.length - 1, i + 2)]!;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    line += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+
+  const area = `${line} L ${points[points.length - 1]!.x.toFixed(2)} ${height - padding} L ${points[0]!.x.toFixed(2)} ${height - padding} Z`;
   return { line, area, points };
 };
 
-const Sparkline = ({ cells }: { cells: number[] }) => {
-  const width = 240;
-  const height = 36;
-  const { line, area, points } = useMemo(() => buildSparkline(cells, width, height), [cells]);
-  const last = points[points.length - 1]!;
+const SERIES = ["core", "ai", "ship"] as const;
+type SeriesKey = (typeof SERIES)[number];
+
+const SERIES_LABELS: Record<SeriesKey, string> = {
+  core: "Core",
+  ai: "AI",
+  ship: "Ship",
+};
+
+const W = 280;
+const H = 96;
+const PADDING = 8;
+
+const LineChart = ({ clusters, active }: { clusters: ActivityCluster[]; active: SeriesKey }) => {
+  const seriesData = useMemo(() => {
+    return SERIES.map((key) => {
+      const cluster = clusters.find((c) => c.label === SERIES_LABELS[key])!;
+      return {
+        key,
+        values: cluster.cells.map((c) => c.level + 0.2),
+      };
+    });
+  }, [clusters]);
+
+  const paths = useMemo(() => {
+    return seriesData.map((s) => buildSmoothPath(s.values, W, H, PADDING));
+  }, [seriesData]);
+
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const [pulseX, setPulseX] = useState(0);
+
+  // Animate pulse position across the chart
+  useEffect(() => {
+    let frame = 0;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const t = ((now - start) / 5000) % 1; // 5s loop
+      setPulseX(PADDING + t * (W - PADDING * 2));
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const handleMove = (event: React.MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * W;
+    const stepX = (W - PADDING * 2) / 15;
+    const idx = Math.round((x - PADDING) / stepX);
+    setHoverIdx(Math.max(0, Math.min(15, idx)));
+  };
+
+  const activePath = paths[SERIES.indexOf(active)]!;
+  const lastPoint = activePath.points[activePath.points.length - 1] ?? { x: 0, y: 0 };
+  const activePoint = activePath.points[hoverIdx ?? 15] ?? lastPoint;
 
   return (
     <svg
-      className="activity-spark"
-      viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="xMidYMid meet"
+      className="activity-chart-svg"
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      onMouseMove={handleMove}
+      onMouseLeave={() => setHoverIdx(null)}
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--orange)" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="var(--orange)" stopOpacity="0" />
+        <linearGradient id="area-grad-core" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={COLORS.core} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={COLORS.core} stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="area-grad-ai" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={COLORS.ai} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={COLORS.ai} stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="area-grad-ship" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={COLORS.ship} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={COLORS.ship} stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="scan-grad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={COLORS.core} stopOpacity="0" />
+          <stop offset="50%" stopColor={COLORS.core} stopOpacity="0.5" />
+          <stop offset="100%" stopColor={COLORS.core} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path className="activity-spark-area" d={area} fill="url(#spark-fill)" />
-      <path
-        className="activity-spark-line"
-        d={line}
-        pathLength={100}
-        strokeDasharray="100"
-        strokeDashoffset="0"
-      />
-      {points.map((p, i) => (
+
+      {/* Grid */}
+      {[0.25, 0.5, 0.75].map((p) => (
+        <line
+          key={p}
+          x1={PADDING}
+          y1={PADDING + p * (H - PADDING * 2)}
+          x2={W - PADDING}
+          y2={PADDING + p * (H - PADDING * 2)}
+          stroke="var(--line)"
+          strokeWidth="0.5"
+          strokeDasharray="2 3"
+          opacity="0.4"
+        />
+      ))}
+
+      {/* Areas (in order so active is on top) */}
+      {SERIES.map((key, i) => (
+        <path
+          key={key}
+          d={paths[i]!.area}
+          fill={`url(#area-grad-${key})`}
+          className="activity-chart-area"
+          style={{ animationDelay: `${0.3 + i * 0.15}s` }}
+        />
+      ))}
+
+      {/* Lines */}
+      {SERIES.map((key, i) => (
+        <path
+          key={key}
+          d={paths[i]!.line}
+          fill="none"
+          stroke={COLORS[key]}
+          strokeWidth={key === active ? 1.8 : 1}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={key === active ? 1 : 0.4}
+          className="activity-chart-line"
+          pathLength={100}
+          strokeDasharray="100"
+          strokeDashoffset="100"
+          style={{ animationDelay: `${0.1 + i * 0.12}s` }}
+        />
+      ))}
+
+      {/* Dots on active line */}
+      {activePath.points.map((p, i) => (
         <circle
           key={i}
           cx={p.x}
           cy={p.y}
-          r={1.6}
-          className={`activity-spark-dot ${i === points.length - 1 ? "activity-spark-dot-end" : ""}`}
+          r={i === 15 ? 2.5 : i === (hoverIdx ?? -1) ? 2.5 : 1.2}
+          fill={COLORS[active]}
+          opacity={i === 15 || i === hoverIdx ? 1 : 0.5}
+          className="activity-chart-dot"
+          style={{ animationDelay: `${0.5 + i * 0.04}s` }}
         />
       ))}
-      <circle
-        className="activity-spark-pulse"
-        cx={last.x}
-        cy={last.y}
-        r={3}
-        fill="none"
-        stroke="var(--orange)"
-        strokeWidth={1.2}
+
+      {/* "Now" line marker */}
+      <line
+        x1={pulseX}
+        y1={PADDING}
+        x2={pulseX}
+        y2={H - PADDING}
+        stroke={COLORS.core}
+        strokeWidth="0.6"
+        strokeDasharray="2 2"
+        opacity="0.5"
+        className="activity-chart-now"
       />
+      <rect
+        x={pulseX - 12}
+        y={PADDING - 2}
+        width="24"
+        height="2"
+        fill="url(#scan-grad)"
+        className="activity-chart-scan"
+      />
+
+      {/* Hover crosshair */}
+      {hoverIdx !== null && activePoint ? (
+        <g className="activity-chart-hover">
+          <line
+            x1={activePoint.x}
+            y1={PADDING}
+            x2={activePoint.x}
+            y2={H - PADDING}
+            stroke="var(--ink)"
+            strokeWidth="0.5"
+            strokeDasharray="1 2"
+            opacity="0.5"
+          />
+          <circle
+            cx={activePoint.x}
+            cy={activePoint.y}
+            r="3"
+            fill="var(--bg-soft)"
+            stroke={COLORS[active]}
+            strokeWidth="1.4"
+          />
+        </g>
+      ) : null}
     </svg>
   );
 };
 
 export const ActivityGraph = () => {
   const [active, setActive] = useState<ActivityCluster>(activityClusters[0]!);
-  const [pulse, setPulse] = useState(0);
   const [now, setNow] = useState(() => new Date());
 
   const totalCommits = useMemo(
-    () => active.cells.reduce((sum, c) => sum + c.level, 0) * 6 + 24,
+    () =>
+      active.cells.reduce((sum, c) => sum + c.level, 0) * 6 + 24,
     [active]
   );
   const animatedTotal = useCountUp(totalCommits, 700);
 
-  // Live "now" ticker
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
   }, []);
 
-  // Pick a "current" cell to highlight
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setPulse((p) => (p + 1) % activityClusters.length);
-    }, 2200);
-    return () => window.clearInterval(id);
-  }, []);
+  const activeKey = (SERIES.find((s) => SERIES_LABELS[s] === active.label) ?? "core") as SeriesKey;
 
   const nowStr = now.toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -135,7 +302,7 @@ export const ActivityGraph = () => {
       <SectionHeading
         index="01"
         title="GitHub activity"
-        note="A compressed view of the last 16 weeks — training work, side projects, and shipping."
+        note="The last 16 weeks, plotted live — training work, side projects, shipping."
       />
 
       <div className="activity-panel reveal-item">
@@ -149,41 +316,11 @@ export const ActivityGraph = () => {
           </div>
         </div>
 
-        <div className="activity-grid" aria-label="Activity heatmap">
-          {activityClusters.map((cluster, rowIndex) => (
-            <div className="activity-row" key={cluster.label}>
-              <span>{cluster.label}</span>
-              <div className="activity-cells">
-                {cluster.cells.map((cell, index) => {
-                  const isLastCol = index === cluster.cells.length - 1;
-                  const isPulsing = rowIndex === pulse && isLastCol;
-                  return (
-                    <button
-                      key={`${cluster.label}-${index}`}
-                      type="button"
-                      className={`activity-cell l-${cell.level} ${
-                        isPulsing ? "is-pulsing" : ""
-                      } ${isLastCol ? "is-current" : ""}`}
-                      data-tip={cell.tip}
-                      aria-label={`${cluster.title}, level ${cell.level}`}
-                      onMouseEnter={() => setActive(cluster)}
-                      onFocus={() => setActive(cluster)}
-                      onClick={() => setActive(cluster)}
-                    />
-                  );
-                })}
-                <span className="activity-scan" aria-hidden="true" />
-              </div>
-            </div>
-          ))}
+        <div className="activity-chart-wrap">
+          <LineChart clusters={activityClusters} active={activeKey} />
         </div>
 
-        <div className="activity-axis" aria-hidden="true">
-          <span>2024</span>
-          <span>now</span>
-        </div>
-
-        <aside className="activity-readout" aria-live="polite">
+        <div className="activity-readout">
           <div className="activity-readout-head">
             <kbd>{active.label}</kbd>
             <span className="activity-count">
@@ -193,8 +330,30 @@ export const ActivityGraph = () => {
           </div>
           <h3>{active.title}</h3>
           <p>{active.description}</p>
-          <Sparkline cells={active.cells.map((c) => c.level)} />
-        </aside>
+        </div>
+
+        <div className="activity-legend">
+          {activityClusters.map((cluster) => {
+            const key = (SERIES.find((s) => SERIES_LABELS[s] === cluster.label) ?? "core") as SeriesKey;
+            const total = cluster.cells.reduce((s, c) => s + c.level, 0) * 6 + 24;
+            const isActive = active.label === cluster.label;
+            return (
+              <button
+                key={cluster.label}
+                type="button"
+                className={`activity-legend-item ${isActive ? "is-active" : ""}`}
+                onMouseEnter={() => setActive(cluster)}
+                onFocus={() => setActive(cluster)}
+                onClick={() => setActive(cluster)}
+                style={{ ["--c" as string]: COLORS[key] }}
+              >
+                <span className="activity-legend-dot" aria-hidden="true" />
+                <span className="activity-legend-label">{cluster.label}</span>
+                <span className="activity-legend-count">{total}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

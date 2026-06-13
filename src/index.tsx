@@ -74,6 +74,7 @@ const Index = () => {
     }
 
     const ctx = gsap.context(() => {
+      // Hero intro stagger
       gsap.fromTo(
         ".hero .reveal-item",
         { y: 16, opacity: 0 },
@@ -84,6 +85,36 @@ const Index = () => {
           ease: "power3.out",
           stagger: 0.07,
           delay: 0.05,
+        }
+      );
+
+      gsap.fromTo(
+        ".hero-time",
+        { opacity: 0, x: -8 },
+        { opacity: 1, x: 0, duration: 0.6, ease: "power2.out", delay: 0.4 }
+      );
+
+      gsap.fromTo(
+        ".hero-name-line",
+        { y: 30, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: "expo.out",
+          stagger: 0.08,
+          delay: 0.15,
+        }
+      );
+
+      gsap.fromTo(
+        ".hero-name em",
+        { backgroundSize: "0% 100%" },
+        {
+          backgroundSize: "100% 100%",
+          duration: 1.2,
+          ease: "expo.out",
+          delay: 0.6,
         }
       );
 
@@ -113,33 +144,14 @@ const Index = () => {
         );
       });
 
-      gsap.utils.toArray<HTMLElement>(".activity-cell").forEach((cell, index) => {
-        gsap.fromTo(
-          cell,
-          { y: 6, opacity: 0.3 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.5,
-            ease: "power2.out",
-            delay: (index % 16) * 0.014 + Math.floor(index / 16) * 0.06,
-            scrollTrigger: {
-              trigger: ".activity-panel",
-              start: "top 95%",
-              once: true,
-            },
-          }
-        );
-      });
-
       gsap.fromTo(
-        ".activity-spark-line",
-        { strokeDasharray: 240, strokeDashoffset: 240 },
+        ".activity-chart-line",
+        { strokeDashoffset: 100 },
         {
           strokeDashoffset: 0,
-          duration: 1.1,
-          ease: "power2.out",
-          delay: 0.4,
+          duration: 1.4,
+          ease: "power3.inOut",
+          stagger: 0.12,
           scrollTrigger: {
             trigger: ".activity-panel",
             start: "top 88%",
@@ -149,12 +161,31 @@ const Index = () => {
       );
 
       gsap.fromTo(
-        ".activity-spark-area",
+        ".activity-chart-area",
         { opacity: 0 },
         {
-          opacity: 0.15,
-          duration: 0.8,
+          opacity: 1,
+          duration: 1,
           ease: "power2.out",
+          stagger: 0.1,
+          delay: 0.5,
+          scrollTrigger: {
+            trigger: ".activity-panel",
+            start: "top 88%",
+            once: true,
+          },
+        }
+      );
+
+      gsap.fromTo(
+        ".activity-chart-dot",
+        { scale: 0, opacity: 0, transformOrigin: "50% 50%" },
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.4,
+          ease: "back.out(2)",
+          stagger: 0.03,
           delay: 0.7,
           scrollTrigger: {
             trigger: ".activity-panel",
@@ -165,33 +196,9 @@ const Index = () => {
       );
 
       gsap.fromTo(
-        ".activity-spark-dot",
-        { scale: 0, opacity: 0, transformOrigin: "50% 50%" },
-        {
-          scale: 1,
-          opacity: 1,
-          duration: 0.3,
-          ease: "back.out(2)",
-          stagger: 0.04,
-          delay: 0.6,
-          scrollTrigger: {
-            trigger: ".activity-panel",
-            start: "top 88%",
-            once: true,
-          },
-        }
-      );
-
-      gsap.fromTo(
         ".panda",
-        { y: 16, opacity: 0, scale: 0.8 },
+        { y: 16, opacity: 0, scale: 0.85 },
         { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.4)", delay: 0.5 }
-      );
-
-      gsap.fromTo(
-        ".visits",
-        { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.7 }
       );
     }, root);
 

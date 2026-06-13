@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const IDLE_MS = 700;
-const SPRING = 0.05;
-const DAMPING = 0.78;
-const REST_RADIUS = 26;
-const SLEEP_AFTER_MS = 18000; // 18s of true idle -> sleep
+const REST_RADIUS = 30;
+const MAX_SPEED = 5.5;
+const MAX_FORCE = 0.18;
+const ARRIVE_RADIUS = 80;
+const SLEEP_AFTER_MS = 18000;
 const WAKE_DISTANCE = 80;
 
 type Mood = "calm" | "alert" | "run" | "sit" | "sleep" | "play";
@@ -38,9 +39,12 @@ const sleepMessages: BubbleMessage[] = [
   { text: "*yawn*" },
 ];
 
+const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+
 export const SquirrelMascot = () => {
   const rootRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
   const lookRef = useRef<SVGGElement>(null);
   const blinkRef = useRef<SVGGElement>(null);
   const mouthRef = useRef<SVGPathElement>(null);
@@ -75,10 +79,9 @@ export const SquirrelMascot = () => {
     mode: "hero" as "hero" | "run" | "rest",
     mood: "calm" as Mood,
     lastMoveAt: 0,
-    yawningUntil: 0,
+    runPhase: 0,
+    runRate: 0,
     nextYawnAt: 0,
-    nextLookAt: 0,
-    lookTarget: { x: 0, y: 0 },
   });
 
   const [bubbleKey, setBubbleKey] = useState(0);
@@ -147,8 +150,6 @@ export const SquirrelMascot = () => {
     state.current.pointerY = initial.y - 40;
     state.current.pointerMovedAt = performance.now();
     state.current.lastMoveAt = performance.now();
-    state.current.nextYawnAt = performance.now() + 7000;
-    state.current.nextLookAt = performance.now() + 3000;
 
     const onPointerMove = (event: PointerEvent) => {
       const w = root.offsetWidth || 96;
@@ -174,7 +175,6 @@ export const SquirrelMascot = () => {
       }
     };
 
-    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
     let lastDust = 0;
     let lastFrameTime = performance.now();
 
@@ -187,284 +187,300 @@ export const SquirrelMascot = () => {
       const pointerIdle = performance.now() - s.pointerMovedAt > IDLE_MS;
 
       let nextMode: "hero" | "run" | "rest" = "hero";
-      let targetX: number;
-      let targetY: number;
+      let goalX: number;
+      let goalY: number;
 
       if (scrolled && pointerIdle) {
-        targetX = s.pointerX;
-        targetY = s.pointerY;
-        const dist = Math.hypot(targetX - s.x, targetY - s.y);
+        goalX = s.pointerX;
+        goalY = s.pointerY;
+        const dist = Math.hypot(goalX - s.x, goalY - s.y);
         nextMode = dist < REST_RADIUS ? "rest" : "run";
       } else if (scrolled) {
-        targetX = s.targetX;
-        targetY = s.targetY;
+        goalX = s.targetX;
+        goalY = s.targetY;
       } else {
         setHomeTarget();
-        targetX = s.targetX;
-        targetY = s.targetY;
+        goalX = s.targetX;
+        goalY = s.targetY;
       }
 
       s.mode = nextMode;
-      const speed = Math.hypot(s.vx, s.vy);
 
-      // Mood logic
-      const timeSinceMove = performance.now() - s.lastMoveAt;
-      const timeSincePointerMove = performance.now() - s.pointerMovedAt;
+      // ---- Reynolds steering: seek / arrive ----
+      const dx = goalX - s.x;
+      const dy = goalY - s.y;
+      const dist = Math.hypot(dx, dy);
 
-      if (s.mode === "hero") {
-        if (timeSinceMove > SLEEP_AFTER_MS) {
-          s.mood = "sleep";
-        } else {
-          s.mood = s.mode === "hero" ? "calm" : s.mood;
-        }
-      } else if (s.mode === "run") {
-        s.mood = "run";
-        s.lastMoveAt = performance.now();
-      } else {
-        // rest
-        if (timeSinceMove > SLEEP_AFTER_MS && timeSincePointerMove > IDLE_MS) {
-          s.mood = "sleep";
-        } else if (timeSincePointerMove > 3500) {
-          s.mood = "sleep";
-        } else {
-          s.mood = "sit";
-        }
-        s.lastMoveAt = performance.now();
+      let targetSpeed = MAX_SPEED;
+      if (s.mode === "rest" || s.mode === "hero") {
+        targetSpeed = 0;
+      } else if (dist < ARRIVE_RADIUS) {
+        // Arrive behavior: slow down as we approach
+        targetSpeed = MAX_SPEED * (dist / ARRIVE_RADIUS);
+      }
+      targetSpeed = Math.max(targetSpeed, 0);
+
+      const desiredVx = dist > 0.5 ? (dx / dist) * targetSpeed : 0;
+      const desiredVy = dist > 0.5 ? (dy / dist) * targetSpeed : 0;
+
+      // Steer = desired - current, capped
+      const steerVx = clamp(desiredVx - s.vx, -MAX_FORCE, MAX_FORCE);
+      const steerVy = clamp(desiredVy - s.vy, -MAX_FORCE, MAX_FORCE);
+
+      s.vx += steerVx;
+      s.vy += steerVy;
+
+      // Clamp to max speed
+      const currentSpeed = Math.hypot(s.vx, s.vy);
+      if (currentSpeed > MAX_SPEED) {
+        s.vx = (s.vx / currentSpeed) * MAX_SPEED;
+        s.vy = (s.vy / currentSpeed) * MAX_SPEED;
       }
 
-      // Apply class
+      // If we're very close and slow, snap to rest
+      if (s.mode === "rest" && currentSpeed < 0.05) {
+        s.vx = 0;
+        s.vy = 0;
+      }
+
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+
+      // ---- Mood ----
+      const timeSincePointer = performance.now() - s.pointerMovedAt;
+      const speed = Math.hypot(s.vx, s.vy);
+      const isMoving = speed > 0.4;
+
+      let nextMood: Mood;
+      if (isMoving) {
+        nextMood = "run";
+        s.lastMoveAt = performance.now();
+      } else if (s.mode === "rest") {
+        if (timeSincePointer > 3500) {
+          nextMood = "sleep";
+        } else {
+          nextMood = "sit";
+        }
+      } else {
+        // hero / idle
+        if (performance.now() - s.lastMoveAt > SLEEP_AFTER_MS) {
+          nextMood = "sleep";
+        } else {
+          nextMood = "calm";
+        }
+      }
+
+      // Wake from sleep if user moves
+      if (
+        nextMood === "sleep" &&
+        timeSincePointer < IDLE_MS &&
+        Math.hypot(goalX - s.x, goalY - s.y) > WAKE_DISTANCE
+      ) {
+        nextMood = "alert";
+      }
+
+      s.mood = nextMood;
+
       const prevMood = root.dataset.mood;
       root.dataset.mood = s.mood;
       if (prevMood !== s.mood) {
         setBubbleKey((k) => k + 1);
       }
 
-      // Physics
-      const spring = s.mood === "run" ? SPRING * 1.6 : SPRING;
-      const ax = (targetX - s.x) * spring;
-      const ay = (targetY - s.y) * spring;
-      s.vx = (s.vx + ax) * DAMPING;
-      s.vy = (s.vy + ay) * DAMPING;
-
-      if (s.mood === "sit" || s.mood === "sleep") {
-        s.vx *= 0.78;
-        s.vy *= 0.78;
-      }
-
-      s.x += s.vx * dt;
-      s.y += s.vy * dt;
-
-      // Wake from sleep if pointer is far
-      if (s.mood === "sleep" && s.mode === "rest" && timeSincePointerMove < IDLE_MS) {
-        const dist = Math.hypot(targetX - s.x, targetY - s.y);
-        if (dist > WAKE_DISTANCE) {
-          s.mood = "alert";
-        }
-      }
+      const mood = s.mood as Mood;
 
       root.style.transform = `translate3d(${s.x.toFixed(2)}px, ${s.y.toFixed(2)}px, 0)`;
 
-      const facingLeft = s.vx < -0.05;
+      const facingLeft = s.vx < -0.1;
       if (facingLeft !== s.facingLeft) {
         s.facingLeft = facingLeft;
         root.classList.toggle("panda-facing-left", facingLeft);
       }
 
-      // ----- Procedural animations -----
+      // ---- Run cycle phase ----
+      // Run rate smoothly tracks speed
+      const speedNorm = clamp(speed / MAX_SPEED, 0, 1);
+      s.runRate = lerp(s.runRate, mood === "run" ? speedNorm : speedNorm * 0.3, 0.12);
+
+      const phaseRate = 3 + s.runRate * 12; // rad/s
+      s.runPhase += phaseRate * 0.01667 * dt; // 60fps baseline
+
+      const phase = s.runPhase;
+      const amp = 4 + s.runRate * 26; // leg swing amplitude
+
+      // ---- Procedural animations ----
       const t = now * 0.001;
 
-      // Body bob
+      // Body bob (synced with legs)
       if (innerRef.current) {
         let bob = 0;
-        if (s.mood === "calm") {
-          bob = Math.sin(t * 2.2) * 2.2;
-        } else if (s.mood === "run") {
-          bob = Math.abs(Math.sin(t * 12)) * 5;
-        } else if (s.mood === "sit") {
-          bob = Math.sin(t * 1.4) * 0.8;
-        } else if (s.mood === "sleep") {
-          bob = Math.sin(t * 0.9) * 0.6;
-        } else if (s.mood === "alert") {
-          bob = Math.sin(t * 3) * 1.5;
+        if (mood === "run") {
+          // 2 bobs per leg cycle (1 per leg pair)
+          bob = Math.abs(Math.sin(phase)) * 4 * s.runRate;
+        } else if (mood === "calm") {
+          bob = Math.sin(t * 2.2) * 1.8;
+        } else if (mood === "sit") {
+          bob = Math.sin(t * 1.4) * 0.6;
+        } else if (mood === "sleep") {
+          bob = Math.sin(t * 0.9) * 0.4;
+        } else if (mood === "alert") {
+          bob = Math.sin(t * 3) * 1.2;
+        } else if (mood === "play") {
+          bob = Math.abs(Math.sin(t * 5)) * 6;
         }
         innerRef.current.style.setProperty("--bob", `${bob.toFixed(2)}px`);
       }
 
       // Body squash/stretch
-      let scaleX = 1, scaleY = 1;
-      if (s.mood === "run") {
-        const gallop = t * 12;
-        const sq = Math.sin(gallop);
-        scaleX = 1 + sq * 0.06;
-        scaleY = 1 - sq * 0.05;
-      } else if (s.mood === "calm") {
+      let scaleX = 1;
+      let scaleY = 1;
+      if (mood === "run") {
+        const sq = Math.sin(phase);
+        scaleX = 1 + sq * 0.04 * s.runRate;
+        scaleY = 1 - sq * 0.03 * s.runRate;
+      } else if (mood === "calm") {
         scaleX = 1 + Math.sin(t * 2.2) * 0.012;
-        scaleY = 1 + Math.sin(t * 2.2 + 1) * 0.018;
-      } else if (s.mood === "sleep") {
-        scaleY = 1 + Math.sin(t * 0.9) * 0.025;
-        scaleX = 1 - Math.sin(t * 0.9) * 0.015;
-      } else if (s.mood === "alert") {
-        scaleY = 1.02;
+        scaleY = 1 + Math.sin(t * 2.2 + 1) * 0.015;
+      } else if (mood === "sleep") {
+        scaleY = 1 + Math.sin(t * 0.9) * 0.02;
       }
-
-      // Body lean based on velocity
-      const lean = Math.max(-14, Math.min(14, s.vx * 2));
+      // Apply forward lean proportional to horizontal velocity
+      const lean = clamp(s.vx * 1.4, -14, 14);
       if (bodyGroupRef.current) {
-        const rx = (lean * 0.5).toFixed(2);
+        const rx = (lean * 0.6).toFixed(2);
         const sx = scaleX.toFixed(3);
         const sy = scaleY.toFixed(3);
         bodyGroupRef.current.style.transform = `rotate(${rx}deg) scale(${sx}, ${sy})`;
       }
 
-      // Head
+      // Head bob + look
       if (headRef.current) {
         let headTilt = 0;
-        if (s.mood === "calm") {
-          headTilt = Math.sin(t * 0.9) * 3 + (s.mood === "calm" ? Math.sin(t * 0.27) * 4 : 0);
-        } else if (s.mood === "run") {
-          headTilt = Math.sin(t * 12) * 4 - lean * 0.3;
-        } else if (s.mood === "sit") {
+        let headBobY = 0;
+        if (mood === "run") {
+          headBobY = Math.sin(phase) * 1.5 * s.runRate;
+          headTilt = -lean * 0.3 + Math.sin(t * 4) * 1.5;
+        } else if (mood === "calm") {
+          headTilt = Math.sin(t * 0.7) * 3 + Math.sin(t * 0.27) * 3;
+        } else if (mood === "sit") {
           headTilt = Math.sin(t * 1.1) * 2;
-        } else if (s.mood === "sleep") {
-          headTilt = 0;
-        } else if (s.mood === "alert") {
-          headTilt = -4;
+        } else if (mood === "sleep") {
+          headTilt = -3;
+        } else if (mood === "alert") {
+          headTilt = -5;
+        } else if (mood === "play") {
+          headTilt = Math.sin(t * 7) * 4;
         }
-        // Add a "look at cursor" small offset
-        const dx = s.pointerX - s.x;
-        const dy = s.pointerY - s.y;
-        const len = Math.hypot(dx, dy) || 1;
-        const lookN = Math.min(len / 200, 1);
-        const headLookX = (dx / len) * lookN * 4;
-        const headLookY = (dy / len) * lookN * 2;
-        headRef.current.style.transform = `translate(${headLookX.toFixed(2)}px, ${headLookY.toFixed(2)}px) rotate(${headTilt.toFixed(2)}deg)`;
+        // Look at cursor (smoothed)
+        const lookDx = s.pointerX - s.x;
+        const lookDy = s.pointerY - s.y;
+        const lookLen = Math.hypot(lookDx, lookDy) || 1;
+        const lookN = Math.min(lookLen / 200, 1);
+        const headLookX = (lookDx / lookLen) * lookN * 3;
+        const headLookY = (lookDy / lookLen) * lookN * 1.5;
+        headRef.current.style.transform = `translate(${(headLookX + 0).toFixed(2)}px, ${(
+          headLookY + headBobY
+        ).toFixed(2)}px) rotate(${headTilt.toFixed(2)}deg)`;
       }
 
       // Tail
       if (tailGroupRef.current) {
-        let baseRot = 0;
-        if (s.mood === "calm") baseRot = Math.sin(t * 1.4) * 12;
-        else if (s.mood === "run") baseRot = -10 + Math.sin(t * 9) * 20;
-        else if (s.mood === "sit") baseRot = Math.sin(t * 2.4) * 20;
-        else if (s.mood === "sleep") baseRot = -30 + Math.sin(t * 0.7) * 3;
-        else if (s.mood === "alert") baseRot = -20;
-        tailGroupRef.current.style.transform = `rotate(${baseRot.toFixed(2)}deg)`;
+        let rot = 0;
+        if (mood === "calm") rot = Math.sin(t * 1.4) * 10;
+        else if (mood === "run") rot = -8 + Math.sin(t * 9) * 18 * s.runRate;
+        else if (mood === "sit") rot = Math.sin(t * 2.4) * 18;
+        else if (mood === "sleep") rot = -25 + Math.sin(t * 0.7) * 2;
+        else if (mood === "alert") rot = -18;
+        else if (mood === "play") rot = Math.sin(t * 12) * 30;
+        tailGroupRef.current.style.transform = `rotate(${rot.toFixed(2)}deg)`;
       }
       if (tailTuftRef.current) {
         let rot = 0;
-        if (s.mood === "calm") rot = Math.sin(t * 1.4 + 0.3) * 16;
-        else if (s.mood === "run") rot = Math.sin(t * 9 + 0.3) * 24;
-        else if (s.mood === "sit") rot = Math.sin(t * 2.4 + 0.3) * 22;
-        else if (s.mood === "sleep") rot = Math.sin(t * 0.7 + 0.3) * 2;
-        else if (s.mood === "alert") rot = -8;
+        if (mood === "calm") rot = Math.sin(t * 1.4 + 0.3) * 14;
+        else if (mood === "run") rot = Math.sin(t * 9 + 0.3) * 22 * s.runRate;
+        else if (mood === "sit") rot = Math.sin(t * 2.4 + 0.3) * 20;
+        else if (mood === "sleep") rot = Math.sin(t * 0.7 + 0.3) * 1.5;
+        else if (mood === "play") rot = Math.sin(t * 12 + 0.3) * 32;
         tailTuftRef.current.style.transform = `rotate(${rot.toFixed(2)}deg)`;
       }
       if (tailStripeRef.current) {
         let rot = 0;
-        if (s.mood === "calm") rot = Math.sin(t * 1.4 + 0.15) * 10;
-        else if (s.mood === "run") rot = Math.sin(t * 9 + 0.15) * 18;
-        else if (s.mood === "sit") rot = Math.sin(t * 2.4 + 0.15) * 16;
-        else if (s.mood === "sleep") rot = Math.sin(t * 0.7 + 0.15) * 2;
-        else if (s.mood === "alert") rot = -6;
+        if (mood === "calm") rot = Math.sin(t * 1.4 + 0.15) * 8;
+        else if (mood === "run") rot = Math.sin(t * 9 + 0.15) * 16 * s.runRate;
+        else if (mood === "sit") rot = Math.sin(t * 2.4 + 0.15) * 14;
+        else if (mood === "sleep") rot = Math.sin(t * 0.7 + 0.15) * 1.5;
         tailStripeRef.current.style.transform = `rotate(${rot.toFixed(2)}deg)`;
       }
 
-      // Legs - gallop in pairs (front-left + back-left, then front-right + back-right)
-      const gallopT = t * 11;
+      // Legs (gallop in pairs)
       if (legLRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(gallopT) * 28
-            : s.mood === "sleep"
-              ? -25
-              : 0;
+        const a = mood === "run" ? Math.sin(phase) * amp : mood === "sleep" ? -22 : 0;
         legLRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
       if (legRRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(gallopT + Math.PI) * 28
-            : s.mood === "sleep"
-              ? 10
-              : 0;
+        const a = mood === "run" ? Math.sin(phase + Math.PI) * amp : mood === "sleep" ? 8 : 0;
         legRRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
 
       // Arms
       if (armLRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(gallopT + Math.PI) * 26
-            : s.mood === "calm"
-              ? Math.sin(t * 2.4) * 12
-              : s.mood === "sit"
-                ? Math.sin(t * 1.8) * 8
-                : 0;
+        let a = 0;
+        if (mood === "run") a = Math.sin(phase + Math.PI) * (amp * 0.9);
+        else if (mood === "calm") a = Math.sin(t * 2.4) * 10;
+        else if (mood === "sit") a = Math.sin(t * 1.8) * 6;
+        else if (mood === "play") a = Math.sin(t * 8) * 18;
         armLRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
       if (armRRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(gallopT) * 26
-            : s.mood === "calm"
-              ? Math.sin(t * 2.4 + 0.4) * 10
-              : s.mood === "sit"
-                ? Math.sin(t * 1.8 + 0.4) * 8
-                : 0;
+        let a = 0;
+        if (mood === "run") a = Math.sin(phase) * (amp * 0.9);
+        else if (mood === "calm") a = Math.sin(t * 2.4 + 0.4) * 8;
+        else if (mood === "sit") a = Math.sin(t * 1.8 + 0.4) * 6;
+        else if (mood === "play") a = Math.sin(t * 8 + 0.4) * 18;
         armRRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
 
       // Ears
       if (earLRef.current) {
         let rot = 0;
-        if (s.mood === "calm") rot = Math.sin(t * 1.8) * 4;
-        else if (s.mood === "run") rot = -lean * 0.4 - 8;
-        else if (s.mood === "sit") rot = 4;
-        else if (s.mood === "sleep") rot = 6;
-        else if (s.mood === "alert") rot = -10;
+        if (mood === "calm") rot = Math.sin(t * 1.8) * 4;
+        else if (mood === "run") rot = -lean * 0.4 - 6 - s.runRate * 6;
+        else if (mood === "sit") rot = 3;
+        else if (mood === "sleep") rot = 5;
+        else if (mood === "alert") rot = -10;
+        else if (mood === "play") rot = Math.sin(t * 9) * 8;
         earLRef.current.style.transform = `rotate(${rot.toFixed(2)}deg)`;
       }
       if (earRRef.current) {
         let rot = 0;
-        if (s.mood === "calm") rot = Math.sin(t * 1.8 + 0.3) * -4;
-        else if (s.mood === "run") rot = -lean * 0.4 - 6;
-        else if (s.mood === "sit") rot = 4;
-        else if (s.mood === "sleep") rot = 8;
-        else if (s.mood === "alert") rot = -12;
+        if (mood === "calm") rot = Math.sin(t * 1.8 + 0.3) * -4;
+        else if (mood === "run") rot = -lean * 0.4 - 4 - s.runRate * 6;
+        else if (mood === "sit") rot = 3;
+        else if (mood === "sleep") rot = 7;
+        else if (mood === "alert") rot = -12;
+        else if (mood === "play") rot = Math.sin(t * 9 + 0.3) * 8;
         earRRef.current.style.transform = `rotate(${rot.toFixed(2)}deg)`;
       }
 
       // Scarf
       if (scarfRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(t * 7) * 8
-            : s.mood === "calm"
-              ? Math.sin(t * 2) * 1.5
-              : 0;
+        const a = mood === "run" ? Math.sin(t * 7) * 6 * s.runRate : mood === "calm" ? Math.sin(t * 2) * 1.2 : 0;
         scarfRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
       if (scarfTailRef.current) {
-        const a =
-          s.mood === "run"
-            ? Math.sin(t * 7 + 0.5) * 16
-            : s.mood === "calm"
-              ? Math.sin(t * 2 + 0.5) * 4
-              : s.mood === "sleep"
-                ? -10
-                : 0;
+        const a = mood === "run" ? Math.sin(t * 7 + 0.5) * 14 * s.runRate : mood === "calm" ? Math.sin(t * 2 + 0.5) * 3 : mood === "sleep" ? -8 : 0;
         scarfTailRef.current.style.transform = `rotate(${a.toFixed(2)}deg)`;
       }
 
       // Eyes look
       if (lookRef.current) {
-        const dx = s.pointerX - s.x;
-        const dy = s.pointerY - s.y;
-        const len = Math.hypot(dx, dy) || 1;
-        const maxShift = s.mood === "sleep" ? 0 : s.mood === "calm" ? 0.6 : 1.8;
-        const lookFactor = Math.min(len / 200, 1);
-        const cx = (dx / len) * lookFactor * maxShift;
-        const cy = (dy / len) * lookFactor * maxShift * 0.6;
+        const lookDx = s.pointerX - s.x;
+        const lookDy = s.pointerY - s.y;
+        const lookLen = Math.hypot(lookDx, lookDy) || 1;
+        const maxShift = mood === "sleep" ? 0 : mood === "calm" ? 0.6 : 1.8;
+        const lookFactor = Math.min(lookLen / 200, 1);
+        const cx = (lookDx / lookLen) * lookFactor * maxShift;
+        const cy = (lookDy / lookLen) * lookFactor * maxShift * 0.6;
         lookRef.current.style.transform = `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px)`;
       }
 
@@ -472,7 +488,7 @@ export const SquirrelMascot = () => {
       if (blinkRef.current) {
         const phase = (t * 0.22) % 1;
         let scaleY = 1;
-        if (s.mood === "sleep") {
+        if (mood === "sleep") {
           scaleY = 0.05;
         } else if (phase > 0.93 && phase < 0.985) {
           const e = (phase - 0.93) / 0.055;
@@ -483,40 +499,38 @@ export const SquirrelMascot = () => {
 
       // Mouth
       if (mouthRef.current) {
-        if (s.mood === "sleep") {
+        if (mood === "sleep") {
           mouthRef.current.setAttribute("d", "M75 68 q5 1 10 0");
-        } else if (s.mood === "run") {
+        } else if (mood === "run") {
           mouthRef.current.setAttribute("d", "M73 68 q7 6 14 0");
+        } else if (mood === "play") {
+          mouthRef.current.setAttribute("d", "M72 67 q8 7 16 0");
         } else {
           mouthRef.current.setAttribute("d", "M75 68 q5 4 10 0");
         }
       }
 
-      // Dust trail when running
-      if (dustLayerRef.current) {
-        if (s.mood === "run" && speed > 0.5 && now - lastDust > 90) {
-          lastDust = now;
-          const dust = document.createElement("span");
-          dust.className = "dust";
-          dust.style.left = `${10 + Math.random() * 30}px`;
-          dust.style.bottom = `${10 + Math.random() * 8}px`;
-          dustLayerRef.current.appendChild(dust);
-          window.setTimeout(() => dust.remove(), 900);
-        }
+      // Dust
+      if (dustLayerRef.current && mood === "run" && s.runRate > 0.4 && now - lastDust > 100) {
+        lastDust = now;
+        const dust = document.createElement("span");
+        dust.className = "dust";
+        dust.style.left = `${10 + Math.random() * 30}px`;
+        dust.style.bottom = `${10 + Math.random() * 8}px`;
+        dustLayerRef.current.appendChild(dust);
+        window.setTimeout(() => dust.remove(), 900);
       }
 
-      // Z's when sleeping
-      if (zLayerRef.current) {
-        if (s.mood === "sleep" && Math.random() < 0.025) {
-          const z = document.createElement("span");
-          z.className = "zzz";
-          z.textContent = "z";
-          z.style.left = `${20 + Math.random() * 30}px`;
-          z.style.bottom = "60px";
-          z.style.fontSize = `${10 + Math.random() * 6}px`;
-          zLayerRef.current.appendChild(z);
-          window.setTimeout(() => z.remove(), 2800);
-        }
+      // Z's
+      if (zLayerRef.current && mood === "sleep" && Math.random() < 0.03) {
+        const z = document.createElement("span");
+        z.className = "zzz";
+        z.textContent = "z";
+        z.style.left = `${20 + Math.random() * 30}px`;
+        z.style.bottom = "60px";
+        z.style.fontSize = `${10 + Math.random() * 6}px`;
+        zLayerRef.current.appendChild(z);
+        window.setTimeout(() => z.remove(), 2800);
       }
 
       frame = requestAnimationFrame(tick);
@@ -537,7 +551,6 @@ export const SquirrelMascot = () => {
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      // Only cycle in calm mood
       if (state.current.mood === "calm" || state.current.mood === "sit") {
         setBubbleKey((k) => k + 1);
       }
@@ -556,7 +569,7 @@ export const SquirrelMascot = () => {
     if (rootRef.current) {
       rootRef.current.dataset.mood = "play";
     }
-    setTimeout(() => {
+    window.setTimeout(() => {
       if (state.current.mood === "play") {
         state.current.mood = state.current.mode === "hero" ? "calm" : "sit";
         if (rootRef.current) {
@@ -592,7 +605,6 @@ export const SquirrelMascot = () => {
         <div className="panda-dust" ref={dustLayerRef} aria-hidden="true" />
         <div className="panda-zzz" ref={zLayerRef} aria-hidden="true" />
         <svg
-          ref={svgRef}
           viewBox="0 0 160 150"
           className="panda-svg"
           aria-hidden="true"
@@ -618,7 +630,6 @@ export const SquirrelMascot = () => {
 
           <ellipse className="panda-shadow" cx="80" cy="142" rx="38" ry="4.5" />
 
-          {/* Tail */}
           <g
             ref={tailGroupRef}
             className="panda-tail-wrap"
@@ -647,7 +658,6 @@ export const SquirrelMascot = () => {
             </g>
           </g>
 
-          {/* Back legs */}
           <g
             ref={legLRef}
             className="panda-leg panda-leg-l"
@@ -665,7 +675,6 @@ export const SquirrelMascot = () => {
             <ellipse cx="92" cy="136" rx="8" ry="3.2" className="panda-foot" />
           </g>
 
-          {/* Body */}
           <g
             ref={bodyGroupRef}
             className="panda-body-wrap"
@@ -675,7 +684,6 @@ export const SquirrelMascot = () => {
             <ellipse className="panda-belly" cx="80" cy="112" rx="18" ry="14" fill="url(#fox-belly)" />
           </g>
 
-          {/* Front paws */}
           <g
             ref={armLRef}
             className="panda-arm panda-arm-l"
@@ -693,7 +701,6 @@ export const SquirrelMascot = () => {
             <ellipse cx="105" cy="117" rx="5.5" ry="2.5" className="panda-foot" />
           </g>
 
-          {/* Scarf */}
           <g ref={scarfRef} style={{ transformOrigin: "80px 76px" }}>
             <path
               className="panda-scarf"
@@ -721,7 +728,6 @@ export const SquirrelMascot = () => {
             />
           </g>
 
-          {/* Ears */}
           <g
             ref={earLRef}
             className="panda-ear panda-ear-l"
@@ -759,7 +765,6 @@ export const SquirrelMascot = () => {
             />
           </g>
 
-          {/* Head */}
           <g
             ref={headRef}
             className="panda-head-wrap"
