@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { profile, socials } from "../data/portfolio";
+import { VisitorCounter } from "./VisitorCounter";
 
 const year = new Date().getFullYear();
 const lastUpdated = new Date().toLocaleDateString("en-US", {
@@ -13,6 +14,8 @@ export const Footer = () => {
 
   return (
     <footer id="contact" className="site-footer reveal-section">
+      <VisitorCounter />
+
       <div className="footer-contact reveal-item">
         <a href={`mailto:${profile.email}`} className="btn btn-primary">
           {profile.email}
@@ -51,7 +54,7 @@ export const Footer = () => {
           · <span className="accent">batticaloa, lk</span> · {year}
         </span>
         <span className="smallprint">
-          typed in typescript · shipped on vercel · last updated {lastUpdated}
+          typed in typescript · shipped on netlify · last updated {lastUpdated}
           {clicks >= 5 ? " · thanks for the clicks." : ""}
         </span>
       </p>

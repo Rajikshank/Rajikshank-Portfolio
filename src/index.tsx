@@ -3,7 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import { Header } from "./components/Header";
-import { Nav } from "./components/Nav";
+import { Dock } from "./components/Dock";
 import { AboutMe } from "./components/AboutMe";
 import { Projects } from "./components/Projects";
 import { Experience } from "./components/Experience";
@@ -20,11 +20,6 @@ const Index = () => {
   useEasterEggs();
 
   useEffect(() => {
-    const root = pageRef.current;
-    if (!root) {
-      return;
-    }
-
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
 
@@ -55,7 +50,7 @@ const Index = () => {
           return;
         }
         event.preventDefault();
-        lenis?.scrollTo(el, { offset: -56, duration: 1.2 });
+        lenis?.scrollTo(el, { offset: -40, duration: 1.2 });
       };
       document.addEventListener("click", onAnchorClick);
 
@@ -93,9 +88,9 @@ const Index = () => {
       );
 
       gsap.fromTo(
-        ".top-nav",
-        { y: -8, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" }
+        ".dock",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.4)", delay: 0.4 }
       );
 
       gsap.utils.toArray<HTMLElement>(".reveal-section").forEach((section) => {
@@ -121,16 +116,16 @@ const Index = () => {
       gsap.utils.toArray<HTMLElement>(".activity-cell").forEach((cell, index) => {
         gsap.fromTo(
           cell,
-          { scale: 0.3, opacity: 0 },
+          { y: 6, opacity: 0.3 },
           {
-            scale: 1,
+            y: 0,
             opacity: 1,
-            duration: 0.45,
-            ease: "back.out(1.7)",
-            delay: (index % 16) * 0.016 + Math.floor(index / 16) * 0.07,
+            duration: 0.5,
+            ease: "power2.out",
+            delay: (index % 16) * 0.014 + Math.floor(index / 16) * 0.06,
             scrollTrigger: {
               trigger: ".activity-panel",
-              start: "top 88%",
+              start: "top 95%",
               once: true,
             },
           }
@@ -157,7 +152,7 @@ const Index = () => {
         ".activity-spark-area",
         { opacity: 0 },
         {
-          opacity: 1,
+          opacity: 0.15,
           duration: 0.8,
           ease: "power2.out",
           delay: 0.7,
@@ -192,6 +187,12 @@ const Index = () => {
         { y: 16, opacity: 0, scale: 0.8 },
         { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "back.out(1.4)", delay: 0.5 }
       );
+
+      gsap.fromTo(
+        ".visits",
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.7 }
+      );
     }, root);
 
     return () => ctx.revert();
@@ -201,9 +202,9 @@ const Index = () => {
     <div ref={pageRef} className="site-shell">
       <div className="grain" aria-hidden="true" />
       <div className="dot-grid" aria-hidden="true" />
+      <div className="scanlines" aria-hidden="true" />
       <SquirrelMascot />
       <div className="page">
-        <Nav />
         <Header />
         <main>
           <ActivityGraph />
@@ -214,6 +215,7 @@ const Index = () => {
         </main>
         <Footer />
       </div>
+      <Dock />
     </div>
   );
 };

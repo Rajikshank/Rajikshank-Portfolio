@@ -14,7 +14,7 @@ export const Header = () => {
         <span className="hero-line">Hi, I'm</span>
         <span className="hero-name">
           <em>
-            <TextScramble text="Krishnakumar" />
+            <TextScramble text="Rajikshan" />
           </em>
           <span className="hero-name-dot" aria-hidden="true" />
         </span>
@@ -29,13 +29,13 @@ export const Header = () => {
       </p>
 
       <p className="hero-lead reveal-item">{profile.intro}</p>
-      <p className="hero-lead reveal-item hero-lead-quiet">
+      <p className="hero-lead hero-lead-quiet reveal-item">
         {profile.detail}
       </p>
 
       <div className="hero-stats reveal-item">
-        {highlights.map((item, i) => (
-          <div key={item.label} className="hero-stat" style={{ ["--i" as string]: i }}>
+        {highlights.map((item) => (
+          <div key={item.label}>
             <strong>{item.value}</strong>
             <span>{item.label}</span>
           </div>
