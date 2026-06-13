@@ -14,8 +14,6 @@ export const Footer = () => {
 
   return (
     <footer id="contact" className="site-footer reveal-section">
-      <VisitorCounter />
-
       <div className="footer-contact reveal-item">
         <a href={`mailto:${profile.email}`} className="btn btn-primary">
           {profile.email}
@@ -58,6 +56,10 @@ export const Footer = () => {
           {clicks >= 5 ? " · thanks for the clicks." : ""}
         </span>
       </p>
+
+      <div className="footer-stamp-wrap reveal-item">
+        <VisitorCounter />
+      </div>
     </footer>
   );
 };

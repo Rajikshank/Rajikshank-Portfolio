@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Eye, MapPin, TrendingUp } from "lucide-react";
+import { Eye, MapPin } from "lucide-react";
 
 const FLAG_KEY = "rajikshan-visitor-flag";
-const HISTORY_KEY = "rajikshan-visit-history";
 const NAMESPACE = "rajikshan-portfolio";
 const KEY = "visits";
-const MAX_HISTORY = 4;
 
 type ApiShape = { value?: number };
 
@@ -30,37 +28,37 @@ const countryCodeToFlag = (code: string): string => {
   );
 };
 
-const COUNTRY_NAMES: Record<string, string> = {
-  LK: "Sri Lanka",
-  IN: "India",
-  US: "United States",
-  GB: "United Kingdom",
-  DE: "Germany",
-  FR: "France",
-  JP: "Japan",
-  SG: "Singapore",
-  AU: "Australia",
-  CA: "Canada",
-  AE: "UAE",
-  NL: "Netherlands",
-  SE: "Sweden",
-  CH: "Switzerland",
-  BR: "Brazil",
-  ID: "Indonesia",
-  TH: "Thailand",
-  MY: "Malaysia",
-  PK: "Pakistan",
-  BD: "Bangladesh",
-  IT: "Italy",
-  ES: "Spain",
-  KR: "South Korea",
-  CN: "China",
-  NZ: "New Zealand",
-  IE: "Ireland",
-  NO: "Norway",
-  DK: "Denmark",
-  FI: "Finland",
-  PL: "Poland",
+const COUNTRY_CODES: Record<string, string> = {
+  LK: "sri lanka",
+  IN: "india",
+  US: "united states",
+  GB: "united kingdom",
+  DE: "germany",
+  FR: "france",
+  JP: "japan",
+  SG: "singapore",
+  AU: "australia",
+  CA: "canada",
+  AE: "uae",
+  NL: "netherlands",
+  SE: "sweden",
+  CH: "switzerland",
+  BR: "brazil",
+  ID: "indonesia",
+  TH: "thailand",
+  MY: "malaysia",
+  PK: "pakistan",
+  BD: "bangladesh",
+  IT: "italy",
+  ES: "spain",
+  KR: "south korea",
+  CN: "china",
+  NZ: "new zealand",
+  IE: "ireland",
+  NO: "norway",
+  DK: "denmark",
+  FI: "finland",
+  PL: "poland",
 };
 
 const useCountUp = (target: number, durationMs: number) => {
@@ -95,32 +93,11 @@ const useCountUp = (target: number, durationMs: number) => {
   return value;
 };
 
-const loadHistory = (): string[] => {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as string[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveHistory = (codes: string[]) => {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(codes.slice(0, MAX_HISTORY)));
-  } catch {
-    // ignore
-  }
-};
-
 export const VisitorCounter = () => {
   const [count, setCount] = useState<number | null>(null);
   const [flag, setFlag] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
-  const [history, setHistory] = useState<string[]>(() => loadHistory());
-  const [trend, setTrend] = useState<string>("+0 today");
-  const animated = useCountUp(count ?? 0, 1500);
+  const animated = useCountUp(count ?? 0, 1200);
 
   useEffect(() => {
     let cancelled = false;
@@ -134,11 +111,6 @@ export const VisitorCounter = () => {
             if (!cancelled) {
               setFlag(parsed.flag);
               setCountry(parsed.country);
-              setHistory((prev) => {
-                const next = [parsed.country, ...prev.filter((c) => c !== parsed.country)];
-                saveHistory(next);
-                return next.slice(0, MAX_HISTORY);
-              });
             }
             return;
           }
@@ -163,11 +135,6 @@ export const VisitorCounter = () => {
         } catch {
           // ignore
         }
-        setHistory((prev) => {
-          const next = [code, ...prev.filter((c) => c !== code)];
-          saveHistory(next);
-          return next.slice(0, MAX_HISTORY);
-        });
       }
     };
 
@@ -195,15 +162,8 @@ export const VisitorCounter = () => {
         } catch {
           // ignore
         }
-        if (Number.isFinite(value) && Number.isFinite(initial?.value)) {
-          const diff = (value as number) - (initial!.value as number);
-          if (diff > 0) {
-            setTrend(`+${diff} today`);
-          }
-        }
       } else if (!cancelled) {
         setCount(1247);
-        setTrend("+0 today");
       }
     };
 
@@ -216,69 +176,42 @@ export const VisitorCounter = () => {
   }, []);
 
   const display = count === null ? "—" : animated.toLocaleString();
-  const countryName = country ? COUNTRY_NAMES[country] ?? country : null;
+  const countryName = country ? COUNTRY_CODES[country] ?? country.toLowerCase() : null;
 
   return (
-    <div className="visitor-stats" role="group" aria-label="Visitor statistics">
-      <div className="visitor-stats-primary">
-        <div className="visitor-stat-card">
-          <div className="visitor-stat-icon">
-            <Eye className="h-3 w-3" />
-          </div>
-          <div className="visitor-stat-body">
-            <span className="visitor-stat-label">total views</span>
-            <span className="visitor-stat-number">{display}</span>
-          </div>
-          <div className="visitor-stat-trend">
-            <TrendingUp className="h-2.5 w-2.5" />
-            <span>{trend}</span>
-          </div>
-        </div>
+    <div className="visit-stamp" role="status" aria-label="Visitor counter">
+      <div className="visit-stamp-corner visit-stamp-corner-tl" aria-hidden="true" />
+      <div className="visit-stamp-corner visit-stamp-corner-tr" aria-hidden="true" />
+      <div className="visit-stamp-corner visit-stamp-corner-bl" aria-hidden="true" />
+      <div className="visit-stamp-corner visit-stamp-corner-br" aria-hidden="true" />
 
-        <div className="visitor-stat-card">
-          <div className="visitor-stat-icon">
-            <MapPin className="h-3 w-3" />
-          </div>
-          <div className="visitor-stat-body">
-            <span className="visitor-stat-label">you visited from</span>
-            <span className="visitor-stat-text">
-              {flag ? (
-                <span className="visitor-stat-flag">{flag}</span>
-              ) : (
-                <span className="visitor-stat-flag visitor-stat-flag-blank">—</span>
-              )}
-              <span className="visitor-stat-country">
-                {countryName ?? "detecting…"}
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
+      <span className="visit-stamp-dot" aria-hidden="true" />
 
-      <div className="visitor-stats-history">
-        <span className="visitor-stats-history-label">recent visits</span>
-        <div className="visitor-stats-flags">
-          {history.length === 0 ? (
-            <>
-              <span className="visitor-flag-chip visitor-flag-chip-skeleton" />
-              <span className="visitor-flag-chip visitor-flag-chip-skeleton" />
-              <span className="visitor-flag-chip visitor-flag-chip-skeleton" />
-              <span className="visitor-flag-chip visitor-flag-chip-skeleton" />
-            </>
-          ) : (
-            history.map((code, i) => (
-              <span
-                key={`${code}-${i}`}
-                className="visitor-flag-chip"
-                title={COUNTRY_NAMES[code] ?? code}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                {countryCodeToFlag(code)}
-              </span>
-            ))
-          )}
-        </div>
-      </div>
+      <span className="visit-stamp-section">
+        <Eye className="visit-stamp-icon" aria-hidden="true" />
+        <span className="visit-stamp-key">arrival</span>
+        <span className="visit-stamp-value">{display}</span>
+      </span>
+
+      <span className="visit-stamp-divider" aria-hidden="true" />
+
+      <span className="visit-stamp-section">
+        <MapPin className="visit-stamp-icon" aria-hidden="true" />
+        <span className="visit-stamp-key">from</span>
+        <span className="visit-stamp-flag" aria-hidden="true">
+          {flag ?? "··"}
+        </span>
+        <span className="visit-stamp-value">
+          {countryName ?? "detecting"}
+        </span>
+      </span>
+
+      <span className="visit-stamp-divider" aria-hidden="true" />
+
+      <span className="visit-stamp-section visit-stamp-status">
+        <span className="visit-stamp-pulse" aria-hidden="true" />
+        <span>live</span>
+      </span>
     </div>
   );
 };
