@@ -1,0 +1,72 @@
+---
+import Icon from "./Icon.astro";
+import Spark from "./Spark.astro";
+
+const path = Astro.url.pathname;
+const links = [
+  { href: "/work/", label: "Projects", match: "/work", icon: "folder" as const },
+  { href: "/notes/", label: "Blog", match: "/notes", icon: "pen" as const },
+  { href: "/about/", label: "About", match: "/about", icon: "user" as const },
+];
+---
+
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="Krishnakumar Rajikshan, home">
+      <span>KR</span><Spark size={15} />
+    </a>
+    <nav aria-label="Primary navigation">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class:list={{ active: path.startsWith(link.match) }}
+            aria-current={path.startsWith(link.match) ? "page" : undefined}
+          >
+            <Icon name={link.icon} size={15} />
+            {link.label}
+          </a>
+        ))
+      }
+      <a class="resume-nav" href="/Krishnakumar_Rajikshan_2026_June.pdf">
+        <Icon name="document" size={15} />
+        Résumé
+      </a>
+      <button
+        class="theme-toggle"
+        type="button"
+        data-theme-toggle
+        aria-label="Switch to light theme"
+        title="Switch theme"
+      >
+        <span class="theme-icon theme-icon-sun"><Icon name="sun" size={17} /></span>
+        <span class="theme-icon theme-icon-moon"><Icon name="moon" size={17} /></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const root = document.documentElement;
+    const button = document.querySelector("[data-theme-toggle]");
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    const syncLabel = () => {
+      const isLight = root.dataset.theme === "light";
+      button.setAttribute(
+        "aria-label",
+        isLight ? "Switch to dark theme" : "Switch to light theme",
+      );
+    };
+
+    syncLabel();
+    button.addEventListener("click", () => {
+      const next = root.dataset.theme === "light" ? "dark" : "light";
+      root.dataset.theme = next;
+      localStorage.setItem("portfolio-theme", next);
+      syncLabel();
+    });
+  })();
+</script>

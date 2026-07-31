@@ -1,0 +1,88 @@
+---
+import activity from "../data/github-activity.json";
+import Icon from "./Icon.astro";
+
+const fetchedAt = new Date(activity.fetchedAt);
+const ageHours = Math.max(0, (Date.now() - fetchedAt.getTime()) / 3_600_000);
+const status = ageHours > 168 ? "stale" : ageHours > 24 ? "aging" : "fresh";
+const syncLabel =
+  ageHours < 1
+    ? "Synced recently"
+    : ageHours < 24
+      ? `Synced ${Math.floor(ageHours)}h ago`
+      : `Synced ${Math.floor(ageHours / 24)}d ago`;
+const absoluteSync = fetchedAt.toLocaleString("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Colombo",
+});
+const visibleEvents = activity.events.slice(0, 3);
+---
+
+<section class="github-card" aria-label="GitHub activity">
+  <div class="github-rhythm">
+    <p class="activity-total">
+      <strong>{activity.totalContributionsLastYear}</strong> contributions <span>/ 12 months</span>
+    </p>
+    <div
+      class="activity-rhythm"
+      role="img"
+      aria-label={`${activity.totalContributionsLastYear} public contributions in the last year, shown as a recent 12-week activity grid.`}
+    >
+      {
+        activity.weeks.map((value) => (
+          <span class={`level-${Math.min(value, 4)}`} aria-hidden="true"></span>
+        ))
+      }
+    </div>
+    <span class="activity-key" aria-hidden="true">
+      Less
+      <i class="level-0"></i><i class="level-1"></i><i class="level-2"></i>
+      <i class="level-3"></i><i class="level-4"></i>
+      More
+    </span>
+    <a class="github-profile" href={activity.profileUrl}>
+      <Icon name="github" size={15} />
+      {activity.username}
+      <span class:list={["sync-dot", status]} aria-hidden="true"></span>
+      <time datetime={activity.fetchedAt} title={absoluteSync}>{syncLabel}</time>
+    </a>
+  </div>
+
+  <div class="github-updates">
+    <h3>Latest activity</h3>
+    <div class="event-list">
+      {
+        visibleEvents.length > 0 ? (
+          visibleEvents.map((event) => (
+            <a class="event-row" href={event.repositoryUrl}>
+              <Icon name="git-branch" size={17} />
+              <span>{event.summary}</span>
+              <time datetime={event.occurredAt}>
+                {new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+                  -Math.max(
+                    1,
+                    Math.round(
+                      (Date.now() - new Date(event.occurredAt).getTime()) /
+                        86_400_000,
+                    ),
+                  ),
+                  "day",
+                )}
+              </time>
+            </a>
+          ))
+        ) : (
+          <div class="event-empty">
+            No recent public updates. Projects are still available on GitHub.
+          </div>
+        )
+      }
+    </div>
+  </div>
+  {status === "stale" && (
+    <p class="stale-note">
+      Refresh delayed. Showing the latest saved activity.
+    </p>
+  )}
+</section>

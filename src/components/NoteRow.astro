@@ -1,0 +1,28 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  slug: string;
+  title: string;
+  thesis: string;
+  publishedAt: Date;
+  readMinutes: number;
+  type: "workflow" | "engineering" | "product";
+}
+
+const { slug, title, publishedAt, readMinutes } = Astro.props;
+const date = publishedAt.toLocaleDateString("en-US", {
+  month: "short",
+  day: "2-digit",
+  year: "numeric",
+});
+---
+
+<article class="note-row">
+  <Icon name="document" size={17} />
+  <h3><a href={`/notes/${slug}/`}>{title}</a></h3>
+  <span class="note-meta">{date} <span>·</span> {readMinutes} min</span>
+  <a class="note-arrow" href={`/notes/${slug}/`} aria-label={`Read ${title}`}>
+    <Icon name="arrow" size={15} />
+  </a>
+</article>

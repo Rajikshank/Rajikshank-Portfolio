@@ -1,0 +1,39 @@
+---
+title: Building CLIs that are easy to update
+thesis: Installation and recovery paths are part of the interface.
+description: Small decisions that make a developer tool feel dependable outside its source tree.
+publishedAt: 2026-06-21
+readMinutes: 5
+type: product
+relatedProject: opengraph-creator
+draft: false
+tags:
+  - CLI
+  - npm
+  - Developer experience
+---
+
+A command can work perfectly in its own monorepo and still fail as a product.
+Users run it from different shells, package managers, operating systems, and
+working directories. They also run it months after the author last touched it.
+
+## Start with the first command
+
+The install or `npx` command must resolve the real published package and give a
+useful version response. Documentation should be tested from a clean directory,
+not inferred from a workspace where every dependency is already present.
+
+## Treat errors as navigation
+
+“File not found” is rarely enough. A useful CLI says which path it resolved,
+which input it expected, and the next safe action. Recovery should not require
+opening the source code.
+
+## Keep generated state obvious
+
+When a tool creates sessions, caches, or export directories, their locations
+should be stable and documented. Hidden state makes a simple command feel
+unpredictable. Inspectable state makes support and automation easier.
+
+The polished part of a CLI is not its spinner. It is the confidence that a
+person can understand what the command changed and what to do next.

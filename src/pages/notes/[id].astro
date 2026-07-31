@@ -1,0 +1,43 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const notes = await getCollection("notes");
+  return notes
+    .filter((note) => !note.data.draft)
+    .map((note) => ({ params: { id: note.id }, props: { note } }));
+}
+
+interface Props {
+  note: CollectionEntry<"notes">;
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+const d = note.data;
+---
+
+<BaseLayout
+  title={`${d.title} — Krishnakumar Rajikshan`}
+  description={d.description}
+  image="/og/notes.png"
+  type="article"
+>
+  <article class="article-shell">
+    <a class="article-back" href="/notes/">← All blog posts</a>
+    <header class="article-head">
+      <p class="article-kicker">{d.type} note</p>
+      <h1>{d.title}</h1>
+      <p class="article-description">{d.thesis}</p>
+      <div class="article-meta">
+        <time datetime={d.publishedAt.toISOString()}>
+          {d.publishedAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+        </time>
+        <span>·</span>
+        <span>{d.readMinutes} min read</span>
+      </div>
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+</BaseLayout>

@@ -1,0 +1,56 @@
+---
+title: Hive Hub
+number: "03"
+thesis: Find relevant jobs with smarter matching.
+summary: Hive Hub combines a job portal with embedding-based matching so candidates can discover opportunities by meaning rather than exact keywords alone.
+role: Full-stack AI Engineer
+period: 2024-2025
+thumbnail: /projects/hive-hub.webp
+thumbnailAlt: Hive Hub dashboard with candidate matches, job listings, and a semantic match overview.
+accent: green
+stack:
+  - LangChain
+  - Prisma
+  - Pinecone
+  - PostgreSQL
+  - Gemini
+featured: true
+order: 3
+links:
+  - label: Live
+    href: https://hive-hub-zeta.vercel.app/
+  - label: Source
+    href: https://github.com/Rajikshank/Hive-Hub
+proof: Public source, live product, and supplied resume
+sourceType: public
+verifiedAt: 2026-07-30
+---
+
+## The problem
+
+Keyword search is brittle when a candidate and an employer describe the same
+ability differently. Hive Hub explores whether semantic retrieval can make
+those near-matches visible without hiding the underlying job information.
+
+## What I built
+
+The supplied resume records a LangChain recommendation flow, Prisma, Pinecone,
+Google Gemini embeddings, and PostgreSQL with pgvector. The public repository
+also contains authentication, rate limiting, and email integration.
+
+The interface keeps the recommendation beside the original job details. A score
+is a navigation aid, not a verdict about a person.
+
+## The systems path
+
+```text
+candidate profile -> normalized text -> embedding
+job description   -> normalized text -> embedding
+                  -> similarity search -> ranked explanation
+```
+
+## What I learned
+
+Vector similarity is only one input to a useful recommendation. A trustworthy
+product must explain why a result appeared, preserve filters the user controls,
+and make it easy to inspect the source job.

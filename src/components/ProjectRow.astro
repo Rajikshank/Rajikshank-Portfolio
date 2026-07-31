@@ -1,0 +1,61 @@
+---
+import Icon from "./Icon.astro";
+
+interface Link {
+  label: "Live" | "Source" | "npm";
+  href: string;
+}
+
+interface Props {
+  slug: string;
+  title: string;
+  number: string;
+  thesis: string;
+  thumbnail: string;
+  thumbnailAlt: string;
+  accent: "orange" | "paper" | "green";
+  links: Link[];
+}
+
+const props = Astro.props;
+const linkIcon = (label: Link["label"]) =>
+  label === "npm" ? "package" : label === "Source" ? "git-branch" : "external";
+---
+
+<article class="project-row">
+  <span class="project-number">{props.number}</span>
+  <a class:list={["project-image", `accent-${props.accent}`]} href={`/work/${props.slug}/`}>
+    <span class="project-browser" aria-hidden="true">
+      <span class="project-browser-dots"><i></i><i></i><i></i></span>
+      <span>{props.title}</span>
+    </span>
+    <img
+      src={props.thumbnail}
+      alt={props.thumbnailAlt}
+      width="960"
+      height="640"
+      loading={props.number === "01" ? "eager" : "lazy"}
+      decoding="async"
+    />
+    <span class="project-corner"></span>
+  </a>
+  <div class="project-copy">
+    <h3><a href={`/work/${props.slug}/`}>{props.title}</a></h3>
+    <p>{props.thesis}</p>
+    <div class="project-actions">
+      <a class="project-link" href={`/work/${props.slug}/`}>
+        Open project <Icon name="arrow" size={15} />
+      </a>
+      <div class="quiet-actions">
+        {
+          props.links.map((link) => (
+            <a href={link.href}>
+              <Icon name={linkIcon(link.label)} size={16} />
+              {link.label}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</article>

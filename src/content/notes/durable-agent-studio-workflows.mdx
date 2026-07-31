@@ -1,0 +1,56 @@
+---
+title: Keeping AI workflows editable
+thesis: Why the editable document matters more than the generated image.
+description: A practical look at durable local state between coding agents and a visual editor.
+publishedAt: 2026-07-18
+readMinutes: 6
+type: workflow
+relatedProject: opengraph-creator
+draft: false
+tags:
+  - Agents
+  - Developer tools
+  - Product design
+---
+
+An agent can create a good first draft in seconds. The harder problem begins
+after a person opens that draft, changes it, closes the editor, and expects the
+agent to understand what happened.
+
+For OpenGraph Creator, I chose to make the handoff explicit. The agent writes a
+layered `.ogdoc` file and a small local session record. Studio edits that same
+document. When control returns to the agent, it reads durable state instead of
+guessing from a screenshot or relying on conversation history.
+
+## The document is the contract
+
+A final PNG is useful to a browser, but it is a poor collaboration format.
+Flattening removes names, layers, editable text, and the reasons behind the
+composition. A structured document keeps those decisions available.
+
+The contract has to stay small. It should describe the canvas, layers, assets,
+and export intent without trying to encode every possible editor feature.
+Versioning matters because both the CLI and Studio need to reject structures
+they do not understand.
+
+## Local state should be inspectable
+
+Keeping sessions in the repository-adjacent filesystem has practical benefits:
+
+- a person can inspect and remove them;
+- an agent can resume without a provider API key;
+- recovery does not depend on a chat transcript;
+- tests can exercise the whole lifecycle with fixtures.
+
+This approach also creates responsibility. Paths must be validated, writes must
+be atomic, and stale sessions must fail clearly. “Local-first” is not permission
+to be careless with the filesystem.
+
+## Human control is a real product boundary
+
+The visual editor is not a preview window for agent output. It is the place
+where a person can disagree. That means agent instructions must describe the
+goal and constraints without repeatedly overwriting deliberate edits.
+
+The best automation I have built does not hide its seams. It makes the handoff
+legible, keeps the source editable, and gives both sides a reliable way back.

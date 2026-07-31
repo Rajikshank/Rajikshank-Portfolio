@@ -1,0 +1,26 @@
+---
+import Spark from "./Spark.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  title: string;
+  meta?: string;
+  spark?: boolean;
+  icon?: "folder" | "github" | "git-branch" | "pen" | "user";
+  href?: string;
+  hrefLabel?: string;
+}
+
+const { title, meta, spark = false, icon, href, hrefLabel } = Astro.props;
+---
+
+<div class="section-head">
+  <h2>
+    {icon && <span class="section-icon" aria-hidden="true"><Icon name={icon} size={14} /></span>}
+    {title}
+    {spark && <Spark size={14} />}
+  </h2>
+  <span class="section-line"></span>
+  {meta && <span class="section-meta">{meta}</span>}
+  {href && hrefLabel && <a class="section-link" href={href}>{hrefLabel} <span>→</span></a>}
+</div>

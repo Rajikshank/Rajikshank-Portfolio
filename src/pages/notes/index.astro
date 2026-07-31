@@ -1,0 +1,28 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import NoteRow from "../../components/NoteRow.astro";
+
+const notes = (await getCollection("notes"))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime());
+---
+
+<BaseLayout
+  title="Blog — Krishnakumar Rajikshan"
+  description="Writing about agent workflows, developer tools, TypeScript systems, and product decisions."
+  image="/og/notes.png"
+>
+  <div class="page-shell">
+    <header class="page-hero">
+      <p class="eyebrow">Blog · {notes.length} posts</p>
+      <h1>Things I’ve learned by building.</h1>
+      <p>
+        Short articles about developer tools, AI workflows, and shipping software.
+      </p>
+    </header>
+    <section class="index-list" aria-label="Published notes">
+      {notes.map((note) => <NoteRow slug={note.id} {...note.data} />)}
+    </section>
+  </div>
+</BaseLayout>

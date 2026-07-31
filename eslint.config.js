@@ -1,23 +1,32 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { globalIgnores } from 'eslint/config'
+import eslint from "@eslint/js";
+import astro from "eslint-plugin-astro";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { globalIgnores } from "eslint/config";
 
-export default tseslint.config([
-  globalIgnores(['dist']),
+export default [
+  globalIgnores(["dist/**", ".astro/**", "node_modules/**", "tmp/**"]),
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...astro.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    files: ["**/*.{js,mjs,ts}"],
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
-])
+];

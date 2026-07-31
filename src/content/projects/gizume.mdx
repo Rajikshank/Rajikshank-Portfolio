@@ -1,0 +1,53 @@
+---
+title: GiZume
+number: "02"
+thesis: Turn GitHub projects into an editable résumé.
+summary: GiZume structures GitHub data into a resume, keeps the result editable, and produces a PDF without making the user rebuild the document by hand.
+role: Full-stack Engineer
+period: 2025-Present
+thumbnail: /projects/gizume.webp
+thumbnailAlt: GiZume resume builder with editing controls beside a clean resume preview.
+accent: paper
+stack:
+  - Next.js
+  - GitHub GraphQL
+  - Puppeteer
+  - Docker
+featured: true
+order: 2
+links:
+  - label: Live
+    href: https://www.gizume.online/
+proof: Live product and supplied resume
+sourceType: resume
+verifiedAt: 2026-07-30
+---
+
+## The problem
+
+A GitHub profile contains useful evidence, but it is not organized for a hiring
+conversation. Copying repositories and contributions into a document is slow,
+and an automatically generated result is rarely ready without editing.
+
+## The workflow
+
+GiZume uses the GitHub GraphQL API to collect profile context and turn it into a
+structured resume draft. The user can edit the content and export a PDF from the
+same workflow.
+
+The supplied resume records a Next.js implementation, Puppeteer PDF generation,
+Docker deployment on a VPS, and Git-based deployment triggers. It reports export
+completion in under ten seconds; that number remains labeled as resume-reported
+until it is independently benchmarked.
+
+## The product decision
+
+Generation should accelerate authorship, not replace it. The useful output is an
+editable document with clear sections, not a one-click black box that invents a
+professional story.
+
+## What I would improve next
+
+I would make evidence provenance visible beside generated lines and add stronger
+revision tools so a user can compare an edited claim with its original GitHub
+source before exporting.

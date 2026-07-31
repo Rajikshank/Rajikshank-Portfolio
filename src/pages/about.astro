@@ -1,0 +1,88 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import SectionHead from "../components/SectionHead.astro";
+import { profile } from "../data/profile";
+
+const capabilityGroups = [
+  {
+    title: "Ship production web systems",
+    copy: "TypeScript, JavaScript, React, Next.js, Node.js, Express, PostgreSQL, and MongoDB.",
+  },
+  {
+    title: "Build retrieval and agent workflows",
+    copy: "Python, LangChain, CrewAI, Pinecone, pgvector, FastAPI, and practical LLM API integration.",
+  },
+  {
+    title: "Make delivery repeatable",
+    copy: "Docker, GitHub Actions, Linux, npm distribution, testing, caching, and deployment automation.",
+  },
+];
+---
+
+<BaseLayout
+  title="About — Krishnakumar Rajikshan"
+  description="Background, experience, education, and capabilities of full-stack AI engineer Krishnakumar Rajikshan."
+  image="/og/about.png"
+>
+  <div class="page-shell">
+    <header class="page-hero">
+      <p class="eyebrow">{profile.location} · Software engineer</p>
+      <h1>I like software with clear seams.</h1>
+      <p>
+        I build full-stack products, LLM-backed systems, and developer tools.
+        The common thread is making complex work inspectable and easier to continue.
+      </p>
+      <div class="contact-row">
+        <a class="action-button" href={`mailto:${profile.email}`}>
+          Email me <Icon name="arrow" size={16} />
+        </a>
+        <a href={profile.resume}>Download résumé</a>
+      </div>
+    </header>
+
+    <section class="content-section index-list">
+      <SectionHead title="Experience" meta="2024-2026" />
+      <div class="prose">
+        <h2>SPM Batticaloa</h2>
+        <p><strong>Trainee Full-Stack AI Engineer · Jan 2024-June 2026</strong></p>
+        <p>
+          The supplied resume records four delivered MERN/Next.js applications,
+          three LangChain APIs using Pinecone and pgvector, CI/CD work with GitHub
+          Actions and Docker, and backend optimization through query improvements
+          and caching.
+        </p>
+        <p>
+          Its reported outcomes include roughly 1,200 daily requests across the
+          LLM APIs and an approximately 40% reduction in average API latency.
+          These figures remain explicitly resume-reported.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-section" id="capabilities">
+      <SectionHead title="Capabilities" meta="Grouped by outcome" spark />
+      <div class="index-list">
+        {
+          capabilityGroups.map((group, index) => (
+            <article class="index-project">
+              <span class="project-number">0{index + 1}</span>
+              <div>
+                <h2>{group.title}</h2>
+                <p>{group.copy}</p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="content-section">
+      <SectionHead title="Education" meta="2022-2026" />
+      <div class="more-copy">
+        <p><strong>Sri Lanka Technological Campus</strong></p>
+        <p>BSc (Hons) in Software Engineering · GPA 3.60 / 4.00</p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Icon from "../../components/Icon.astro";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+<BaseLayout
+  title="Projects — Krishnakumar Rajikshan"
+  description="Case studies about developer tools, AI workflows, and production web systems."
+  image="/og/work.png"
+>
+  <div class="page-shell">
+    <header class="page-hero">
+      <p class="eyebrow">Projects · 03</p>
+      <h1>Projects I’ve built.</h1>
+      <p>
+        A closer look at the products, tools, and technical decisions behind my work.
+      </p>
+    </header>
+    <section class="index-list" aria-label="Projects">
+      {
+        projects.map((project) => (
+          <article class="index-project">
+            <span class="project-number">{project.data.number}</span>
+            <div>
+              <h2><a href={`/work/${project.id}/`}>{project.data.title}</a></h2>
+              <p>{project.data.thesis}</p>
+            </div>
+            <Icon class="index-arrow" name="arrow" size={18} />
+          </article>
+        ))
+      }
+    </section>
+  </div>
+</BaseLayout>

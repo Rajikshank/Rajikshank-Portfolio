@@ -1,0 +1,66 @@
+---
+title: OpenGraph Creator
+number: "01"
+thesis: Create and edit social images from one reliable workflow.
+summary: OpenGraph Creator lets coding agents inspect a repository, create a layered document, hand it to a visual editor, and resume after a human makes changes.
+role: Founder & Engineer
+period: 2024-Present
+thumbnail: /projects/opengraph-creator.webp
+thumbnailAlt: OpenGraph Creator Studio showing a layered editorial image, source controls, and an export panel.
+accent: orange
+stack:
+  - TypeScript
+  - React
+  - Vite
+  - SVG
+  - Vitest
+featured: true
+order: 1
+links:
+  - label: npm
+    href: https://www.npmjs.com/package/opengraph-creator
+  - label: Source
+    href: https://github.com/Rajikshank/opengraph-creator
+proof: Public source, npm package, and supplied resume
+sourceType: public
+verifiedAt: 2026-07-30
+---
+
+## The problem
+
+Most AI image workflows end with a flattened file. That is quick, but it leaves
+the next person with no useful structure to edit, inspect, or reuse. A repository
+also needs more than a single image: it needs predictable paths, metadata wiring,
+export checks, and a workflow another agent can safely resume.
+
+OpenGraph Creator treats the editable document as the product. The output image is
+only one artifact derived from it.
+
+## What I built
+
+I designed a TypeScript monorepo containing a CLI runtime, a React/Vite Studio,
+an `.ogdoc` document model, and an SVG-to-raster export pipeline. Coding agents
+can inspect a repository, assemble a layered document, open it in Studio for
+human adjustment, and continue from the same local session.
+
+The supplied resume records four published packages and export support for PNG,
+WebP, and JPEG. The public repository also documents integrations for Codex,
+Claude Code, and OpenCode.
+
+## The important decision
+
+The handoff between agent and editor is a file-and-session protocol rather than
+an opaque cloud conversation. That makes the workflow inspectable. A person can
+see what changed, recover a session, and keep the source document beside the
+code that uses it.
+
+```text
+repository -> agent inspection -> layered .ogdoc -> Studio edit
+          -> validated export -> metadata wiring -> resumable session
+```
+
+## What I learned
+
+Agent tooling becomes more useful when it leaves durable state behind. The most
+important interface was not a prompt box; it was the boundary between automated
+work and deliberate human control.

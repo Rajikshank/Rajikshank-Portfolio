@@ -1,0 +1,68 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Icon from "../../components/Icon.astro";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+---
+
+<BaseLayout
+  title={`${d.title} — Krishnakumar Rajikshan`}
+  description={d.summary}
+  image={d.thumbnail}
+  type="article"
+>
+  <article class="article-shell">
+    <a class="article-back" href="/work/">← All projects</a>
+    <header class="article-head">
+      <p class="article-kicker">{d.number} · Case study</p>
+      <h1>{d.title}</h1>
+      <p class="article-description">{d.thesis}</p>
+      <div class="article-meta">
+        <span>{d.role}</span>
+        <span>·</span>
+        <span>{d.period}</span>
+      </div>
+      <div class="contact-row">
+        {
+          d.links.map((link) => (
+            <a class={link.label === "Live" ? "action-button" : undefined} href={link.href}>
+              {link.label}
+              <Icon name={link.label === "npm" ? "package" : link.label === "Source" ? "git-branch" : "external"} size={15} />
+            </a>
+          ))
+        }
+      </div>
+    </header>
+    <figure class="article-cover">
+      <img src={d.thumbnail} alt={d.thumbnailAlt} width="960" height="640" />
+    </figure>
+    <div class="project-proof">
+      <div class="proof-item"><span>Evidence</span><strong>{d.proof}</strong></div>
+      <div class="proof-item">
+        <span>Last verified</span>
+        <strong>{d.verifiedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong>
+      </div>
+      <div class="proof-item"><span>Role</span><strong>{d.role}</strong></div>
+      <div class="proof-item">
+        <span>Stack</span>
+        <div class="tag-list">{d.stack.map((item) => <span>{item}</span>)}</div>
+      </div>
+    </div>
+    <div class="prose"><Content /></div>
+  </article>
+</BaseLayout>

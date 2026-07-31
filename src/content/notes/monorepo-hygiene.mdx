@@ -1,0 +1,43 @@
+---
+title: What I learned from shipping small tools
+thesis: A few boundaries matter more than a perfect folder tree.
+description: Notes from keeping a CLI, document model, editor, and renderer aligned.
+publishedAt: 2026-07-03
+readMinutes: 7
+type: engineering
+relatedProject: opengraph-creator
+draft: false
+tags:
+  - TypeScript
+  - Monorepos
+  - Testing
+---
+
+A monorepo becomes useful when packages have different responsibilities but
+must evolve through one verified workflow. It becomes expensive when every
+package can reach into every other package.
+
+In a tool with a CLI, a document schema, a Studio, and a renderer, the document
+model is the most important boundary. The editor should not depend on CLI
+internals, and the renderer should accept a validated document rather than an
+untyped object assembled by whichever command ran first.
+
+## Make dependency direction boring
+
+The shared schema sits near the bottom. Rendering and editing can depend on it.
+The CLI coordinates them, but the schema never imports the CLI. This simple
+direction prevents a surprising amount of build and test complexity.
+
+## Test the workflow, not only the packages
+
+Unit tests catch schema rules and small transforms. They do not prove that an
+agent-created session can open in Studio and export the expected file. A small
+set of workflow fixtures is more valuable than duplicating hundreds of unit
+cases around implementation details.
+
+## Publishing is part of architecture
+
+Package versions, generated artifacts, and public documentation are another
+dependency graph. A release is incomplete if the CLI expects a document version
+that the published Studio cannot open. Release checks should validate those
+relationships before npm receives anything.

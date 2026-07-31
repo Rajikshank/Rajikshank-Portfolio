@@ -1,0 +1,30 @@
+---
+import { profile } from "../data/profile";
+import Icon from "./Icon.astro";
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <a class="footer-email" href={`mailto:${profile.email}`}>
+      <Icon name="mail" size={18} />
+      {profile.email}
+    </a>
+    <span class="local-time" data-local-time>Batticaloa, LK · GMT+5:30</span>
+  </div>
+</footer>
+
+<script>
+  const target = document.querySelector("[data-local-time]");
+  const updateTime = () => {
+    if (!(target instanceof HTMLElement)) return;
+    const time = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Colombo",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date());
+    target.textContent = `Batticaloa · ${time} · GMT+5:30`;
+  };
+  updateTime();
+  window.setInterval(updateTime, 60_000);
+</script>

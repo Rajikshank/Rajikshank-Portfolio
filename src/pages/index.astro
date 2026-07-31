@@ -1,0 +1,194 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Icon from "../components/Icon.astro";
+import SectionHead from "../components/SectionHead.astro";
+import ProjectRow from "../components/ProjectRow.astro";
+import GitHubActivity from "../components/GitHubActivity.astro";
+import NoteRow from "../components/NoteRow.astro";
+import Spark from "../components/Spark.astro";
+import MakerGlyph from "../components/MakerGlyph.astro";
+import { profile } from "../data/profile";
+
+const projects = (await getCollection("projects"))
+  .filter((project) => project.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+const notes = (await getCollection("notes"))
+  .filter((note) => !note.data.draft)
+  .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime())
+  .slice(0, 3);
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  jobTitle: profile.role,
+  email: `mailto:${profile.email}`,
+  url: new URL("/", Astro.site),
+  sameAs: [profile.github, profile.linkedin],
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Batticaloa",
+    addressCountry: "LK",
+  },
+};
+---
+
+<BaseLayout>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)}></script>
+  </Fragment>
+
+  <div class="page-shell">
+    <section class="intro" aria-labelledby="intro-title">
+      <MakerGlyph />
+      <span class="intro-rule" aria-hidden="true"></span>
+      <div class="intro-context">
+        <p><Icon name="code" size={14} /> {profile.role}</p>
+        <p><Icon name="location" size={14} /> {profile.locationShort}</p>
+      </div>
+      <h1 id="intro-title" aria-label={profile.name}>
+        <span class="name-word" data-scramble data-final="Krishnakumar" aria-hidden="true">
+          Krishnakumar
+        </span>
+        <span class="name-last-line" aria-hidden="true">
+          <span class="name-word name-word-accent" data-scramble data-final="Rajikshan">
+            Rajikshan
+          </span>
+          <Spark size={18} />
+        </span>
+      </h1>
+      <p class="intro-lede">{profile.description}</p>
+      <div class="intro-links" aria-label="Contact and profiles">
+        <a href={`mailto:${profile.email}`}>
+          <span class="intro-link-icon"><Icon name="mail" size={15} /></span><span>Email</span>
+        </a>
+        <a href={profile.github}>
+          <span class="intro-link-icon"><Icon name="github" size={15} /></span><span>GitHub</span>
+        </a>
+        <a href={profile.linkedin}>
+          <span class="intro-link-icon"><Icon name="linkedin" size={15} /></span><span>LinkedIn</span>
+        </a>
+        <a href={profile.resume}>
+          <span class="intro-link-icon"><Icon name="document" size={15} /></span><span>Résumé</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="content-section" aria-labelledby="projects-title">
+      <SectionHead title="Projects" icon="folder" />
+      <div id="projects-title" class="sr-only">Projects</div>
+      {
+        projects.map((project) => (
+          <ProjectRow
+            slug={project.id}
+            title={project.data.title}
+            number={project.data.number}
+            thesis={project.data.thesis}
+            thumbnail={project.data.thumbnail}
+            thumbnailAlt={project.data.thumbnailAlt}
+            accent={project.data.accent}
+            links={project.data.links}
+          />
+        ))
+      }
+    </section>
+
+    <section class="content-section" aria-labelledby="github-title">
+      <SectionHead title="GitHub" icon="git-branch" />
+      <div id="github-title" class="sr-only">GitHub</div>
+      <GitHubActivity />
+    </section>
+
+    <section class="content-section" aria-labelledby="blog-title">
+      <SectionHead title="Blog" icon="pen" />
+      <div id="blog-title" class="sr-only">Blog</div>
+      {notes.map((note) => <NoteRow slug={note.id} {...note.data} />)}
+    </section>
+
+    <section class="content-section home-about" aria-labelledby="about-title">
+      <SectionHead title="About" icon="user" />
+      <div class="about-line">
+        <Icon name="user" size={24} />
+        <p id="about-title">{profile.introduction}</p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+
+  gsap.registerPlugin(ScrambleTextPlugin);
+
+  const root = document.documentElement;
+  const words = gsap.utils.toArray<HTMLElement>("[data-scramble]");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (root.dataset.heroIntro === "play" && !reduceMotion && words.length > 0) {
+    const timeline = gsap.timeline({
+      defaults: { ease: "power3.out" },
+      onComplete: () => {
+        root.dataset.heroReady = "true";
+      },
+    });
+
+    timeline
+      .from(".intro-rule", { scaleY: 0, transformOrigin: "top", duration: 0.72 }, 0)
+      .from(
+        ".intro-context p",
+        { autoAlpha: 0, y: 5, duration: 0.38, stagger: 0.08 },
+        0.08,
+      )
+      .from(
+        ".maker-glyph",
+        { autoAlpha: 0, scale: 0.76, rotation: -8, duration: 0.72 },
+        0.2,
+      )
+      .from(
+        ".maker-glyph-orbit-a",
+        { rotation: 72, transformOrigin: "60px 60px", duration: 0.9 },
+        0.22,
+      )
+      .from(
+        ".maker-glyph-orbit-b",
+        { rotation: -72, transformOrigin: "60px 60px", duration: 0.9 },
+        0.22,
+      );
+
+    words.forEach((word, index) => {
+      const finalText = word.dataset.final ?? word.textContent?.trim() ?? "";
+      timeline.fromTo(
+        word,
+        { y: 8 },
+        {
+          y: 0,
+          duration: index === 0 ? 0.86 : 0.96,
+          scrambleText: {
+            text: finalText,
+            chars: "krishnaujm",
+            revealDelay: 0.05,
+            speed: 0.5,
+            tweenLength: false,
+          },
+        },
+        0.2 + index * 0.13,
+      );
+    });
+
+    timeline
+      .from(
+        ".name-last-line > svg",
+        { autoAlpha: 0, scale: 0.35, rotation: -28, duration: 0.48 },
+        0.58,
+      )
+      .from(".intro-lede", { autoAlpha: 0, y: 9, duration: 0.44 }, 0.68)
+      .from(
+        ".intro-links a",
+        { autoAlpha: 0, y: 10, scale: 0.97, duration: 0.4, stagger: 0.055 },
+        0.8,
+      );
+  } else {
+    root.dataset.heroReady = "true";
+  }
+</script>
