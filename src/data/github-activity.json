@@ -1,17 +1,10 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-08-01T19:36:14.885Z",
+  "fetchedAt": "2026-08-02T03:54:34.886Z",
   "sourceWindowDays": 30,
   "totalContributionsLastYear": 292,
   "weeks": [
-    4,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
     0,
     4,
     4,
@@ -88,7 +81,8 @@
     0,
     0,
     0,
-    1
+    1,
+    0
   ],
   "events": [
     {
