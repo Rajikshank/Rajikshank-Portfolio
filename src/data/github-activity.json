@@ -1,7 +1,7 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-08-07T00:16:47.659Z",
+  "fetchedAt": "2026-08-07T03:20:45.130Z",
   "sourceWindowDays": 30,
   "totalContributionsLastYear": 301,
   "weeks": [
@@ -114,24 +114,6 @@
       "repositoryUrl": "https://github.com/Rajikshank/Rajikshank-Portfolio",
       "occurredAt": "2026-07-31T19:04:41Z",
       "summary": "Pushed 1 commit to Rajikshank-Portfolio",
-      "count": 1
-    },
-    {
-      "id": "14598261149",
-      "type": "push",
-      "repository": "gizume-test",
-      "repositoryUrl": "https://github.com/Rajikshank/gizume-test",
-      "occurredAt": "2026-07-09T04:59:07Z",
-      "summary": "Pushed 1 commit to gizume-test",
-      "count": 1
-    },
-    {
-      "id": "14595587114",
-      "type": "push",
-      "repository": "lms-watcher",
-      "repositoryUrl": "https://github.com/Rajikshank/lms-watcher",
-      "occurredAt": "2026-07-09T03:45:07Z",
-      "summary": "Pushed 1 commit to lms-watcher",
       "count": 1
     }
   ]
