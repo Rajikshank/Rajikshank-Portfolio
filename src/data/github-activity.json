@@ -1,7 +1,7 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-10-04T12:24:17.678Z",
+  "fetchedAt": "2026-10-04T21:28:21.155Z",
   "sourceWindowDays": 30,
   "totalContributionsLastYear": 300,
   "weeks": [
@@ -84,15 +84,5 @@
     0,
     0
   ],
-  "events": [
-    {
-      "id": "20013347047",
-      "type": "push",
-      "repository": "gizume-test",
-      "repositoryUrl": "https://github.com/Rajikshank/gizume-test",
-      "occurredAt": "2026-09-04T03:35:19Z",
-      "summary": "Pushed 1 commit to gizume-test",
-      "count": 1
-    }
-  ]
+  "events": []
 }
