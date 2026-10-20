@@ -1,9 +1,9 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-10-20T11:40:49.272Z",
+  "fetchedAt": "2026-10-20T17:10:12.991Z",
   "sourceWindowDays": 30,
-  "totalContributionsLastYear": 301,
+  "totalContributionsLastYear": 303,
   "weeks": [
     0,
     1,
@@ -84,9 +84,17 @@
     0,
     0,
     0,
-    0
+    2
   ],
   "events": [
+    {
+      "id": "17731074198",
+      "type": "pull-request",
+      "repository": "northwind-support",
+      "repositoryUrl": "https://github.com/Rajikshank/northwind-support",
+      "occurredAt": "2026-10-20T17:01:59Z",
+      "summary": "opened a pull request in northwind-support"
+    },
     {
       "id": "23895904131",
       "type": "push",
