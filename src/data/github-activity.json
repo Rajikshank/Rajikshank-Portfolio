@@ -1,9 +1,9 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-11-08T13:27:48.321Z",
+  "fetchedAt": "2026-11-08T22:08:08.638Z",
   "sourceWindowDays": 30,
-  "totalContributionsLastYear": 303,
+  "totalContributionsLastYear": 305,
   "weeks": [
     0,
     0,
@@ -82,9 +82,17 @@
     0,
     0,
     0,
-    0
+    2
   ],
   "events": [
+    {
+      "id": "19482031756",
+      "type": "release",
+      "repository": "auto-image-crop",
+      "repositoryUrl": "https://github.com/Rajikshank/auto-image-crop",
+      "occurredAt": "2026-11-08T14:47:29Z",
+      "summary": "Published v0.4.1 in auto-image-crop"
+    },
     {
       "id": "24807116661",
       "type": "push",
