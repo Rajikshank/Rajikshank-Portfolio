@@ -1,17 +1,10 @@
 {
   "username": "Rajikshank",
   "profileUrl": "https://github.com/Rajikshank",
-  "fetchedAt": "2026-11-21T19:18:21.132Z",
+  "fetchedAt": "2026-11-22T06:52:16.147Z",
   "sourceWindowDays": 30,
   "totalContributionsLastYear": 300,
   "weeks": [
-    3,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
     0,
     0,
     0,
@@ -76,6 +69,7 @@
     0,
     0,
     2,
+    0,
     0,
     0,
     0,
@@ -106,15 +100,6 @@
       "repositoryUrl": "https://github.com/Rajikshank/auto-image-crop",
       "occurredAt": "2026-11-08T14:47:29Z",
       "summary": "Published v0.4.1 in auto-image-crop"
-    },
-    {
-      "id": "24807116661",
-      "type": "push",
-      "repository": "northwind-support",
-      "repositoryUrl": "https://github.com/Rajikshank/northwind-support",
-      "occurredAt": "2026-10-20T17:06:10Z",
-      "summary": "Pushed 1 commit to northwind-support",
-      "count": 1
     }
   ]
 }
